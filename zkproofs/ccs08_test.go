@@ -17,27 +17,27 @@
 package zkproofs
 
 import (
-	"testing"
-	"math/big"
+	"../crypto/bn256"
 	"crypto/rand"
 	"fmt"
-	"github.com/ing-bank/zkproofs/go-ethereum/crypto/bn256"
+	"math/big"
+	"testing"
 	"time"
 )
 
 /*
-Tests decomposion into bits. 
+Tests decomposion into bits.
 */
 func TestDecompose(t *testing.T) {
 	h := GetBigInt("925")
-	decx, _ := Decompose(h, 10, 3)	
+	decx, _ := Decompose(h, 10, 3)
 	if decx[0] != 5 || decx[1] != 2 || decx[2] != 9 {
 		t.Errorf("Assert failure: expected true, actual: %d", decx)
 	}
 }
 
 /*
-Tests Inversion on G1 group. 
+Tests Inversion on G1 group.
 */
 func TestNegScalarBaseMulG1(t *testing.T) {
 	b, _ := rand.Int(rand.Reader, bn256.Order)
@@ -54,7 +54,7 @@ func TestNegScalarBaseMulG1(t *testing.T) {
 }
 
 /*
-Tests Inversion on G2 group. 
+Tests Inversion on G2 group.
 */
 func TestNegScalarBaseMulG2(t *testing.T) {
 	b, _ := rand.Int(rand.Reader, bn256.Order)
@@ -68,7 +68,7 @@ func TestNegScalarBaseMulG2(t *testing.T) {
 }
 
 /*
-Tests Inversion on GFp12 finite field. 
+Tests Inversion on GFp12 finite field.
 */
 func TestInvertGFp12(t *testing.T) {
 	b, _ := rand.Int(rand.Reader, bn256.Order)
@@ -104,7 +104,7 @@ func TestZKRP_UL(t *testing.T) {
 }
 
 /*
-Tests if the Setup algorithm is rejecting wrong input as expected. 
+Tests if the Setup algorithm is rejecting wrong input as expected.
 */
 func TestZKRPSetupInput(t *testing.T) {
 	var (
@@ -152,12 +152,12 @@ func TestZKSet(t *testing.T) {
 }
 
 /*
-Tests the entire ZK Range Proof (CCS08) protocol. 
+Tests the entire ZK Range Proof (CCS08) protocol.
 */
 func TestZKRP(t *testing.T) {
 	var (
 		result bool
-		zkrp ccs08 
+		zkrp   ccs08
 	)
 	startTime := time.Now()
 	zkrp.Setup(347184000, 599644800)
@@ -172,7 +172,7 @@ func TestZKRP(t *testing.T) {
 	fmt.Println(proofTime.Sub(setupTime))
 	if e != nil {
 		fmt.Println(e.Error())
-	} 
+	}
 	result, _ = zkrp.Verify()
 	verifyTime := time.Now()
 	fmt.Println("Verify time:")

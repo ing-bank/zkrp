@@ -17,17 +17,16 @@
 package zkproofs
 
 import (
-	"testing"
 	"math/big"
+	"testing"
 )
 
 func TestKeyGen(t *testing.T) {
 	kp, _ := keygen()
-	signature, _ := sign(big.NewInt(42), kp.privk)	
+	signature, _ := sign(big.NewInt(42), kp.privk)
 	res, _ := verify(signature, big.NewInt(42), kp.pubk)
 	if res != true {
 		t.Errorf("Assert failure: expected true, actual: %t", res)
 		t.Fail()
 	}
 }
-

@@ -17,9 +17,9 @@
 package zkproofs
 
 import (
-  "math/big"
-  "crypto/sha256"
-  "github.com/ing-bank/zkproofs/go-ethereum/byteconversion"
+	"../byteconversion"
+	"crypto/sha256"
+	"math/big"
 )
 
 var k1 = new(big.Int).SetBit(big.NewInt(0), 160, 1) // 2^160, security parameter that should match prover
@@ -28,11 +28,11 @@ func CalculateHash(b1 *big.Int, b2 *big.Int) (*big.Int, error) {
 
 	digest := sha256.New()
 	digest.Write(byteconversion.ToByteArray(b1))
-	if (b2 != nil) {
+	if b2 != nil {
 		digest.Write(byteconversion.ToByteArray(b2))
 	}
 	output := digest.Sum(nil)
-	tmp := output[0: len(output)]
+	tmp := output[0:len(output)]
 	return byteconversion.FromByteArray(tmp)
 }
 
@@ -43,25 +43,25 @@ func ModPow(base *big.Int, exponent *big.Int, modulo *big.Int) *big.Int {
 
 	var returnValue *big.Int
 
-	if exponent.Cmp(big.NewInt(0)) >=0 {
+	if exponent.Cmp(big.NewInt(0)) >= 0 {
 		returnValue = new(big.Int).Exp(base, exponent, modulo)
 	} else {
 		// Exp doesn't support negative exponent so instead:
 		// use positive exponent than take inverse (modulo)..
-		returnValue =  ModInverse(new(big.Int).Exp(base, new(big.Int).Abs(exponent), modulo), modulo)
+		returnValue = ModInverse(new(big.Int).Exp(base, new(big.Int).Abs(exponent), modulo), modulo)
 	}
 	return returnValue
 }
 
-func Add(x *big.Int, y *big.Int) * big.Int {
+func Add(x *big.Int, y *big.Int) *big.Int {
 	return new(big.Int).Add(x, y)
 }
 
-func Sub(x *big.Int, y *big.Int) * big.Int {
+func Sub(x *big.Int, y *big.Int) *big.Int {
 	return new(big.Int).Sub(x, y)
 }
 
-func Mod(base *big.Int, modulo *big.Int) * big.Int {
+func Mod(base *big.Int, modulo *big.Int) *big.Int {
 	return new(big.Int).Mod(base, modulo)
 }
 

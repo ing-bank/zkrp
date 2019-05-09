@@ -24,13 +24,13 @@ Asiacrypt 2008
 package zkproofs
 
 import (
-	"errors"
-	"strconv"
+	"../crypto/bn256"
 	"bytes"
-	"math/big"
-	"math"
 	"crypto/rand"
-	"github.com/ing-bank/zkproofs/go-ethereum/crypto/bn256"
+	"errors"
+	"math"
+	"math/big"
+	"strconv"
 )
 
 /*
@@ -39,15 +39,15 @@ This must be computed in a trusted setup.
 */
 type paramsSet struct {
 	signatures map[int64]*bn256.G2
-	H *bn256.G2
+	H          *bn256.G2
 	// TODO:must protect the private key
 	kp keypair
-	// u determines the amount of signatures we need in the public params. 
+	// u determines the amount of signatures we need in the public params.
 	// Each signature can be compressed to just 1 field element of 256 bits.
-	// Then the parameters have minimum size equal to 256*u bits. 
+	// Then the parameters have minimum size equal to 256*u bits.
 	// l determines how many pairings we need to compute, then in order to improve
 	// verifier`s performance we want to minize it.
-	// Namely, we have 2*l pairings for the prover and 3*l for the verifier.  
+	// Namely, we have 2*l pairings for the prover and 3*l for the verifier.
 }
 
 /*
@@ -56,38 +56,38 @@ This must be computed in a trusted setup.
 */
 type paramsUL struct {
 	signatures map[string]*bn256.G2
-	H *bn256.G2
+	H          *bn256.G2
 	// TODO:must protect the private key
 	kp keypair
-	// u determines the amount of signatures we need in the public params. 
+	// u determines the amount of signatures we need in the public params.
 	// Each signature can be compressed to just 1 field element of 256 bits.
-	// Then the parameters have minimum size equal to 256*u bits. 
+	// Then the parameters have minimum size equal to 256*u bits.
 	// l determines how many pairings we need to compute, then in order to improve
 	// verifier`s performance we want to minize it.
-	// Namely, we have 2*l pairings for the prover and 3*l for the verifier.  
-	u,l int64
+	// Namely, we have 2*l pairings for the prover and 3*l for the verifier.
+	u, l int64
 }
 
 /*
 proofSet contains the necessary elements for the ZK Set Membership proof.
 */
 type proofSet struct {
-	V *bn256.G2
-	D,C *bn256.G2
-	a *bn256.GT
-	s,t,zsig,zv *big.Int
-	c,m,zr *big.Int
+	V              *bn256.G2
+	D, C           *bn256.G2
+	a              *bn256.GT
+	s, t, zsig, zv *big.Int
+	c, m, zr       *big.Int
 }
 
 /*
 proofUL contains the necessary elements for the ZK proof.
 */
 type proofUL struct {
-	V []*bn256.G2
-	D,C *bn256.G2
-	a []*bn256.GT
-	s,t,zsig,zv []*big.Int
-	c,m,zr *big.Int
+	V              []*bn256.G2
+	D, C           *bn256.G2
+	a              []*bn256.GT
+	s, t, zsig, zv []*big.Int
+	c, m, zr       *big.Int
 }
 
 /*
@@ -101,9 +101,9 @@ func SetupSet(s []int64) (paramsSet, error) {
 	p.kp, _ = keygen()
 
 	p.signatures = make(map[int64]*bn256.G2)
-	for i=0; i < len(s); i++ {
+	for i = 0; i < len(s); i++ {
 		sig_i, _ := sign(new(big.Int).SetInt64(int64(s[i])), p.kp.privk)
-		p.signatures[s[i]] = sig_i 
+		p.signatures[s[i]] = sig_i
 	}
 	//TODO: protect the 'master' key
 	h := GetBigInt("18560948149108576432482904553159745978835170526553990798435819795989606410925")
@@ -124,9 +124,9 @@ func SetupUL(u, l int64) (paramsUL, error) {
 	p.kp, _ = keygen()
 
 	p.signatures = make(map[string]*bn256.G2)
-	for i=0; i < u; i++ {
+	for i = 0; i < u; i++ {
 		sig_i, _ := sign(new(big.Int).SetInt64(i), p.kp.privk)
-		p.signatures[strconv.FormatInt(i, 10)] = sig_i 
+		p.signatures[strconv.FormatInt(i, 10)] = sig_i
 	}
 	//TODO: protect the 'master' key
 	h := GetBigInt("18560948149108576432482904553159745978835170526553990798435819795989606410925")
@@ -141,15 +141,15 @@ ProveSet method is used to produce the ZK Set Membership proof.
 */
 func ProveSet(x int64, r *big.Int, p paramsSet) (proofSet, error) {
 	var (
-		v *big.Int
+		v         *big.Int
 		proof_out proofSet
 	)
 
 	// Initialize variables
-	proof_out.D = new(bn256.G2) 
+	proof_out.D = new(bn256.G2)
 	proof_out.D.SetInfinity()
 	proof_out.m, _ = rand.Int(rand.Reader, bn256.Order)
-	
+
 	D := new(bn256.G2)
 	v, _ = rand.Int(rand.Reader, bn256.Order)
 	A, ok := p.signatures[x]
@@ -170,8 +170,8 @@ func ProveSet(x int64, r *big.Int, p paramsSet) (proofSet, error) {
 		return proof_out, errors.New("Could not generate proof. Element does not belong to the interval.")
 	}
 	proof_out.D.Add(proof_out.D, D)
-	
-	// Consider passing C as input, 
+
+	// Consider passing C as input,
 	// so that it is possible to delegate the commitment computation to an external party.
 	proof_out.C, _ = Commit(new(big.Int).SetInt64(x), r, p.H)
 	// Fiat-Shamir heuristic
@@ -190,29 +190,29 @@ func ProveSet(x int64, r *big.Int, p paramsSet) (proofSet, error) {
 /*
 ProveUL method is used to produce the ZKRP proof that secret x belongs to the interval [0,U^L].
 */
-func ProveUL(x,r *big.Int, p paramsUL) (proofUL, error) {
+func ProveUL(x, r *big.Int, p paramsUL) (proofUL, error) {
 	var (
-		i int64
-		v []*big.Int
+		i         int64
+		v         []*big.Int
 		proof_out proofUL
 	)
-	decx, _ := Decompose(x, p.u, p.l)	
+	decx, _ := Decompose(x, p.u, p.l)
 
 	// Initialize variables
 	v = make([]*big.Int, p.l, p.l)
-	proof_out.V  = make([]*bn256.G2, p.l, p.l)
-	proof_out.a  = make([]*bn256.GT, p.l, p.l)
+	proof_out.V = make([]*bn256.G2, p.l, p.l)
+	proof_out.a = make([]*bn256.GT, p.l, p.l)
 	proof_out.s = make([]*big.Int, p.l, p.l)
 	proof_out.t = make([]*big.Int, p.l, p.l)
 	proof_out.zsig = make([]*big.Int, p.l, p.l)
 	proof_out.zv = make([]*big.Int, p.l, p.l)
-	proof_out.D = new(bn256.G2) 
+	proof_out.D = new(bn256.G2)
 	proof_out.D.SetInfinity()
 	proof_out.m, _ = rand.Int(rand.Reader, bn256.Order)
-	
+
 	// D = H^m
 	D := new(bn256.G2).ScalarMult(p.H, proof_out.m)
-	for i = 0; i< p.l; i++ {
+	for i = 0; i < p.l; i++ {
 		v[i], _ = rand.Int(rand.Reader, bn256.Order)
 		A, ok := p.signatures[strconv.FormatInt(decx[i], 10)]
 		if ok {
@@ -232,10 +232,10 @@ func ProveUL(x,r *big.Int, p paramsUL) (proofUL, error) {
 		} else {
 			return proof_out, errors.New("Could not generate proof. Element does not belong to the interval.")
 		}
-	}	
+	}
 	proof_out.D.Add(proof_out.D, D)
-	
-	// Consider passing C as input, 
+
+	// Consider passing C as input,
 	// so that it is possible to delegate the commitment computation to an external party.
 	proof_out.C, _ = Commit(x, r, p.H)
 	// Fiat-Shamir heuristic
@@ -244,7 +244,7 @@ func ProveUL(x,r *big.Int, p paramsUL) (proofUL, error) {
 
 	proof_out.zr = Sub(proof_out.m, Multiply(r, proof_out.c))
 	proof_out.zr = Mod(proof_out.zr, bn256.Order)
-	for i = 0; i< p.l; i++ {
+	for i = 0; i < p.l; i++ {
 		proof_out.zsig[i] = Sub(proof_out.s[i], Multiply(new(big.Int).SetInt64(decx[i]), proof_out.c))
 		proof_out.zsig[i] = Mod(proof_out.zsig[i], bn256.Order)
 		proof_out.zv[i] = Sub(proof_out.t[i], Multiply(v[i], proof_out.c))
@@ -258,15 +258,15 @@ VerifySet is used to validate the ZK Set Membership proof. It returns true iff t
 */
 func VerifySet(proof_out *proofSet, p *paramsSet) (bool, error) {
 	var (
-		D *bn256.G2
+		D      *bn256.G2
 		r1, r2 bool
-		p1,p2 *bn256.GT
+		p1, p2 *bn256.GT
 	)
 	// D == C^c.h^ zr.g^zsig ?
 	D = new(bn256.G2).ScalarMult(proof_out.C, proof_out.c)
-	D.Add(D, new(bn256.G2).ScalarMult(p.H, proof_out.zr)) 	
+	D.Add(D, new(bn256.G2).ScalarMult(p.H, proof_out.zr))
 	aux := new(bn256.G2).ScalarBaseMult(proof_out.zsig)
-	D.Add(D, aux) 	
+	D.Add(D, aux)
 
 	DBytes := D.Marshal()
 	pDBytes := proof_out.D.Marshal()
@@ -284,7 +284,7 @@ func VerifySet(proof_out *proofSet, p *paramsSet) (bool, error) {
 
 	pBytes := p1.Marshal()
 	aBytes := proof_out.a.Marshal()
-	r2 = r2 && bytes.Equal(pBytes, aBytes) 
+	r2 = r2 && bytes.Equal(pBytes, aBytes)
 	return r1 && r2, nil
 }
 
@@ -293,20 +293,20 @@ VerifyUL is used to validate the ZKRP proof. It returns true iff the proof is va
 */
 func VerifyUL(proof_out *proofUL, p *paramsUL) (bool, error) {
 	var (
-		i int64
-		D *bn256.G2
+		i      int64
+		D      *bn256.G2
 		r1, r2 bool
-		p1,p2 *bn256.GT
+		p1, p2 *bn256.GT
 	)
 	// D == C^c.h^ zr.g^zsig ?
 	D = new(bn256.G2).ScalarMult(proof_out.C, proof_out.c)
-	D.Add(D, new(bn256.G2).ScalarMult(p.H, proof_out.zr)) 	
-	for i = 0; i< p.l; i++ {
+	D.Add(D, new(bn256.G2).ScalarMult(p.H, proof_out.zr))
+	for i = 0; i < p.l; i++ {
 		ui := new(big.Int).Exp(new(big.Int).SetInt64(p.u), new(big.Int).SetInt64(i), nil)
 		muizsigi := new(big.Int).Mul(proof_out.zsig[i], ui)
 		muizsigi = Mod(muizsigi, bn256.Order)
 		aux := new(bn256.G2).ScalarBaseMult(muizsigi)
-		D.Add(D, aux) 	
+		D.Add(D, aux)
 	}
 
 	DBytes := D.Marshal()
@@ -323,10 +323,10 @@ func VerifyUL(proof_out *proofUL, p *paramsUL) (bool, error) {
 		p2.Invert(p2)
 		p1.Add(p1, p2)
 		p1.Add(p1, new(bn256.GT).ScalarMult(E, proof_out.zv[i]))
-	
+
 		pBytes := p1.Marshal()
 		aBytes := proof_out.a[i].Marshal()
-		r2 = r2 && bytes.Equal(pBytes, aBytes) 
+		r2 = r2 && bytes.Equal(pBytes, aBytes)
 	}
 	return r1 && r2, nil
 }
@@ -335,7 +335,7 @@ func VerifyUL(proof_out *proofUL, p *paramsUL) (bool, error) {
 proof contains the necessary elements for the ZK proof.
 */
 type proof struct {
-	p1,p2 proofUL
+	p1, p2 proofUL
 }
 
 /*
@@ -343,26 +343,26 @@ params contains elements generated by the verifier, which are necessary for the 
 This must be computed in a trusted setup.
 */
 type params struct {
-	p *paramsUL 
-	a,b int64
+	p    *paramsUL
+	a, b int64
 }
 
 type ccs08 struct {
-	p *params
-	x, r *big.Int
+	p         *params
+	x, r      *big.Int
 	proof_out proof
-	pubk *bn256.G1
+	pubk      *bn256.G1
 }
 
 /*
 Setup receives integers a and b, and configures the parameters for the rangeproof scheme.
 */
-func (zkrp *ccs08) Setup(a,b int64) (error) {
+func (zkrp *ccs08) Setup(a, b int64) error {
 	// Compute optimal values for u and l
 	var (
-		u,l int64
+		u, l int64
 		logb float64
-		p *params
+		p    *params
 	)
 	if a > b {
 		zkrp.p = nil
@@ -376,8 +376,8 @@ func (zkrp *ccs08) Setup(a,b int64) (error) {
 		u = 57
 		if u != 0 {
 			l = 0
-			for i:=b; i>0; i=i/u {
-				l=l+1
+			for i := b; i > 0; i = i / u {
+				l = l + 1
 			}
 			params_out, e := SetupUL(u, l)
 			p.p = &params_out
@@ -387,20 +387,20 @@ func (zkrp *ccs08) Setup(a,b int64) (error) {
 			return e
 		} else {
 			zkrp.p = nil
-			return errors.New("u is zero") 
+			return errors.New("u is zero")
 		}
 	} else {
 		zkrp.p = nil
-		return errors.New("log(b) is zero") 
+		return errors.New("log(b) is zero")
 	}
 }
 
 /*
 Prove method is responsible for generating the zero knowledge proof.
 */
-func (zkrp *ccs08) Prove() (error) {
+func (zkrp *ccs08) Prove() error {
 	ul := new(big.Int).Exp(new(big.Int).SetInt64(zkrp.p.p.u), new(big.Int).SetInt64(zkrp.p.p.l), nil)
-	
+
 	// x - b + ul
 	xb := new(big.Int).Sub(zkrp.x, new(big.Int).SetInt64(zkrp.p.b))
 	xb.Add(xb, ul)
@@ -423,4 +423,3 @@ func (zkrp *ccs08) Verify() (bool, error) {
 	second, _ := VerifyUL(&zkrp.proof_out.p2, zkrp.p.p)
 	return first && second, nil
 }
-

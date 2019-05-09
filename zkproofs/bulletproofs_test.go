@@ -17,12 +17,12 @@
 package zkproofs
 
 import (
-	"testing"
-	"math/big"
+	"../crypto/bn256"
 	"crypto/rand"
 	"fmt"
-	"time" 
-	"github.com/ing-bank/zkproofs/go-ethereum/crypto/bn256"
+	"math/big"
+	"testing"
+	"time"
 )
 
 /*
@@ -47,7 +47,7 @@ Test method VectorConvertToBig.
 func TestVectorConvertToBig(t *testing.T) {
 	var (
 		result []*big.Int
-		a []int64
+		a      []int64
 	)
 	a = make([]int64, 3)
 	a[0] = 3
@@ -63,11 +63,11 @@ func TestVectorConvertToBig(t *testing.T) {
 }
 
 /*
-Scalar Product returns the inner product between 2 vectors. 
+Scalar Product returns the inner product between 2 vectors.
 */
 func TestScalarProduct(t *testing.T) {
 	var (
-		a,b []*big.Int
+		a, b []*big.Int
 	)
 	a = make([]*big.Int, 3)
 	b = make([]*big.Int, 3)
@@ -89,7 +89,7 @@ Tests Vector addition.
 */
 func TestVectorAdd(t *testing.T) {
 	var (
-		a,b []*big.Int
+		a, b []*big.Int
 	)
 	a = make([]*big.Int, 3)
 	b = make([]*big.Int, 3)
@@ -113,7 +113,7 @@ Tests Vector subtraction.
 */
 func TestVectorSub(t *testing.T) {
 	var (
-		a,b []*big.Int
+		a, b []*big.Int
 	)
 	a = make([]*big.Int, 3)
 	b = make([]*big.Int, 3)
@@ -137,7 +137,7 @@ Tests Vector componentwise multiplication.
 */
 func TestVectorMul(t *testing.T) {
 	var (
-		a,b []*big.Int
+		a, b []*big.Int
 	)
 	a = make([]*big.Int, 3)
 	b = make([]*big.Int, 3)
@@ -171,20 +171,20 @@ func TestPowerOf(t *testing.T) {
 	}
 }
 
-/* 
+/*
 Test Inner Product argument.
 */
 func TestInnerProduct(t *testing.T) {
 	var (
 		zkrp bp
 		zkip bip
-		a []*big.Int
-		b []*big.Int
+		a    []*big.Int
+		b    []*big.Int
 	)
 	// TODO:
-	// Review if it is the best way, since we maybe could use the 
-	// inner product independently of the range proof. 
-	zkrp.Setup(0,16) 
+	// Review if it is the best way, since we maybe could use the
+	// inner product independently of the range proof.
+	zkrp.Setup(0, 16)
 	a = make([]*big.Int, zkrp.N)
 	a[0] = new(big.Int).SetInt64(2)
 	a[1] = new(big.Int).SetInt64(-1)
@@ -198,7 +198,7 @@ func TestInnerProduct(t *testing.T) {
 	c := new(big.Int).SetInt64(142)
 	commit, _ := CommitInnerProduct(zkrp.Gg, zkrp.Hh, a, b)
 	zkip.Setup(zkrp.H, zkrp.Gg, zkrp.Hh, c)
-	proof, _ := zkip.Prove(a, b, commit)	
+	proof, _ := zkip.Prove(a, b, commit)
 	ok, _ := zkip.Verify(proof)
 	if ok != true {
 		t.Errorf("Assert failure: expected true, actual: %t", ok)
@@ -206,18 +206,18 @@ func TestInnerProduct(t *testing.T) {
 }
 
 /*
-Test the FALSE case of ZK Range Proof scheme using Bulletproofs. 
+Test the FALSE case of ZK Range Proof scheme using Bulletproofs.
 */
 func TestFalseBulletproofsZKRP(t *testing.T) {
 	var (
 		zkrp bp
 	)
 	startTime := time.Now()
-	zkrp.Setup(0,4294967296) // ITS BEING USED TO COMPUTE N 
+	zkrp.Setup(0, 4294967296) // ITS BEING USED TO COMPUTE N
 	setupTime := time.Now()
 	fmt.Println("Setup time:")
 	fmt.Println(setupTime.Sub(startTime))
-	
+
 	x := new(big.Int).SetInt64(4294967296)
 	proof, _ := zkrp.Prove(x)
 	proofTime := time.Now()
@@ -228,7 +228,7 @@ func TestFalseBulletproofsZKRP(t *testing.T) {
 	verifyTime := time.Now()
 	fmt.Println("Verify time:")
 	fmt.Println(verifyTime.Sub(proofTime))
-	
+
 	fmt.Println("Range Proofs invalid test result:")
 	fmt.Println(ok)
 	if ok != false {
@@ -237,18 +237,18 @@ func TestFalseBulletproofsZKRP(t *testing.T) {
 }
 
 /*
-Test the TRUE case of ZK Range Proof scheme using Bulletproofs. 
+Test the TRUE case of ZK Range Proof scheme using Bulletproofs.
 */
 func TestTrueBulletproofsZKRP(t *testing.T) {
 	var (
 		zkrp bp
 	)
 	startTime := time.Now()
-	zkrp.Setup(0,4294967296) // ITS BEING USED TO COMPUTE N 
+	zkrp.Setup(0, 4294967296) // ITS BEING USED TO COMPUTE N
 	setupTime := time.Now()
 	fmt.Println("Setup time:")
 	fmt.Println(setupTime.Sub(startTime))
-	
+
 	x := new(big.Int).SetInt64(65535)
 	proof, _ := zkrp.Prove(x)
 	proofTime := time.Now()
@@ -259,7 +259,7 @@ func TestTrueBulletproofsZKRP(t *testing.T) {
 	verifyTime := time.Now()
 	fmt.Println("Verify time:")
 	fmt.Println(verifyTime.Sub(proofTime))
-	
+
 	fmt.Println("Range Proofs result:")
 	fmt.Println(ok)
 	if ok != true {
@@ -267,16 +267,15 @@ func TestTrueBulletproofsZKRP(t *testing.T) {
 	}
 }
 
-
 func BenchmarkBulletproofs(b *testing.B) {
 	var (
-		zkrp bp
+		zkrp  bp
 		proof proofBP
-		ok bool
+		ok    bool
 	)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		zkrp.Setup(0,4294967296) // ITS BEING USED TO COMPUTE N 
+		zkrp.Setup(0, 4294967296) // ITS BEING USED TO COMPUTE N
 		x := new(big.Int).SetInt64(4294967295)
 		proof, _ = zkrp.Prove(x)
 		ok, _ = zkrp.Verify(proof)
@@ -305,8 +304,8 @@ func TestHashBP(t *testing.T) {
 	agy, _ := new(big.Int).SetString("103949684536896233354287911519259186718323435572971865592336813380571928560949", 10)
 	sgx, _ := new(big.Int).SetString("78662919066140655151560869958157053125629409725243565127658074141532489435921", 10)
 	sgy, _ := new(big.Int).SetString("114946280626097680211499478702679495377587739951564115086530426937068100343655", 10)
-	pointa := &p256{X:agx, Y:agy}
-	points := &p256{X:sgx, Y:sgy}
+	pointa := &p256{X: agx, Y: agy}
+	points := &p256{X: sgx, Y: sgy}
 	result1, result2, _ := HashBP(pointa, points)
 	res1, _ := new(big.Int).SetString("103823382860325249552741530200099120077084118788867728791742258217664299339569", 10)
 	res2, _ := new(big.Int).SetString("8192372577089859289404358830067912230280991346287696886048261417244724213964", 10)
@@ -319,9 +318,9 @@ func TestHashBP(t *testing.T) {
 }
 
 func TestHashBPGx(t *testing.T) {
-	gx, _ := new(big.Int).SetString("79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798", 16);
-        gy, _ := new(big.Int).SetString("483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8", 16);
-	point := &p256{X:gx, Y:gy}
+	gx, _ := new(big.Int).SetString("79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798", 16)
+	gy, _ := new(big.Int).SetString("483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8", 16)
+	point := &p256{X: gx, Y: gy}
 	result1, result2, _ := HashBP(point, point)
 	res1, _ := new(big.Int).SetString("11897424191990306464486192136408618361228444529783223689021929580052970909263", 10)
 	res2, _ := new(big.Int).SetString("22166487799255634251145870394406518059682307840904574298117500050508046799269", 10)

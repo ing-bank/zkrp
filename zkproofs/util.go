@@ -17,31 +17,31 @@
 package zkproofs
 
 import (
-	"math/big"
+	"../byteconversion"
+	"../crypto/bn256"
 	"crypto/sha256"
-	"github.com/ing-bank/zkproofs/go-ethereum/byteconversion"
-	"github.com/ing-bank/zkproofs/go-ethereum/crypto/bn256"
+	"math/big"
 )
 
 //Constants that are going to be used frequently, then we just need to compute them once.
 var (
 	G1 = new(bn256.G1).ScalarBaseMult(new(big.Int).SetInt64(1))
 	G2 = new(bn256.G2).ScalarBaseMult(new(big.Int).SetInt64(1))
-	E = bn256.Pair(G1, G2)
+	E  = bn256.Pair(G1, G2)
 )
 
-/* 
+/*
 Decompose receives as input a bigint x and outputs an array of integers such that
 x = sum(xi.u^i), i.e. it returns the decomposition of x into base u.
 */
 func Decompose(x *big.Int, u int64, l int64) ([]int64, error) {
 	var (
 		result []int64
-		i int64
+		i      int64
 	)
 	result = make([]int64, l, l)
 	i = 0
-	for i<l {
+	for i < l {
 		result[i] = Mod(x, new(big.Int).SetInt64(u)).Int64()
 		x = new(big.Int).Div(x, new(big.Int).SetInt64(u))
 		i = i + 1
@@ -50,10 +50,10 @@ func Decompose(x *big.Int, u int64, l int64) ([]int64, error) {
 }
 
 /*
-Commit method corresponds to the Pedersen commitment scheme. Namely, given input 
+Commit method corresponds to the Pedersen commitment scheme. Namely, given input
 message x, and randomness r, it outputs g^x.h^r.
 */
-func Commit(x,r *big.Int, h *bn256.G2) (*bn256.G2, error) {
+func Commit(x, r *big.Int, h *bn256.G2) (*bn256.G2, error) {
 	var (
 		C *bn256.G2
 	)
@@ -63,10 +63,10 @@ func Commit(x,r *big.Int, h *bn256.G2) (*bn256.G2, error) {
 }
 
 /*
-CommitG1 method corresponds to the Pedersen commitment scheme. Namely, given input 
+CommitG1 method corresponds to the Pedersen commitment scheme. Namely, given input
 message x, and randomness r, it outputs g^x.h^r.
 */
-func CommitG1(x,r *big.Int, h *p256) (*p256, error) {
+func CommitG1(x, r *big.Int, h *p256) (*p256, error) {
 	var (
 		C *p256
 	)
@@ -84,7 +84,7 @@ func HashSet(a *bn256.GT, D *bn256.G2) (*big.Int, error) {
 	digest.Write([]byte(a.String()))
 	digest.Write([]byte(D.String()))
 	output := digest.Sum(nil)
-	tmp := output[0: len(output)]
+	tmp := output[0:len(output)]
 	return byteconversion.FromByteArray(tmp)
 }
 
@@ -98,7 +98,7 @@ func Hash(a []*bn256.GT, D *bn256.G2) (*big.Int, error) {
 	}
 	digest.Write([]byte(D.String()))
 	output := digest.Sum(nil)
-	tmp := output[0: len(output)]
+	tmp := output[0:len(output)]
 	return byteconversion.FromByteArray(tmp)
 }
 
@@ -110,4 +110,3 @@ func GetBigInt(value string) *big.Int {
 	i.SetString(value, 10)
 	return i
 }
-
