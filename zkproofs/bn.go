@@ -17,7 +17,7 @@
 package zkproofs
 
 import (
-	"../byteconversion"
+	"./util/byteconversion"
 	"crypto/sha256"
 	"math/big"
 )

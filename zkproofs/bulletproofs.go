@@ -24,7 +24,7 @@ Asiacrypt 2008
 package zkproofs
 
 import (
-	"../byteconversion"
+	"./util/byteconversion"
 	"bytes"
 	"crypto/rand"
 	"crypto/sha256"

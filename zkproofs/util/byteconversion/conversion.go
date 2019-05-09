@@ -17,17 +17,17 @@
 package byteconversion
 
 import (
-  "errors"
-  "math/big"
+	"errors"
+	"math/big"
 )
 
 /**
- * Returns the big.Int based on the passed byte-array assuming the byte-array contains 
- * the two's-complement representation of this big.Int. The byte array will be in big-endian byte-order: 
- * the most significant byte is in the zeroth element. The array will contain the minimum number of bytes 
- * required to represent this BigInteger, including at least one sign bit, which is (ceil((this.bitLength() + 1)/8)). 
+ * Returns the big.Int based on the passed byte-array assuming the byte-array contains
+ * the two's-complement representation of this big.Int. The byte array will be in big-endian byte-order:
+ * the most significant byte is in the zeroth element. The array will contain the minimum number of bytes
+ * required to represent this BigInteger, including at least one sign bit, which is (ceil((this.bitLength() + 1)/8)).
  */
-func FromByteArray(bytesIn [] byte) (*big.Int, error) {
+func FromByteArray(bytesIn []byte) (*big.Int, error) {
 
 	const MINUS_ONE = -1
 
@@ -37,10 +37,10 @@ func FromByteArray(bytesIn [] byte) (*big.Int, error) {
 	}
 
 	highestByte := bytesIn[0]
-	isNegative := (highestByte & 128) !=0
+	isNegative := (highestByte & 128) != 0
 	var convertedBytes []byte
 
-    if isNegative {
+	if isNegative {
 
 		tmpInt := new(big.Int).SetBytes(bytesIn)
 		tmpInt = tmpInt.Sub(tmpInt, big.NewInt(1))
@@ -54,17 +54,17 @@ func FromByteArray(bytesIn [] byte) (*big.Int, error) {
 		}
 		tmp := new(big.Int).SetBytes(convertedBytes)
 		return tmp.Mul(tmp, big.NewInt(MINUS_ONE)), nil
-    } else {
-    	// if positive leave unchanged (additional 0-bytes will be ignored)
-    	return new(big.Int).SetBytes(bytesIn), nil
-    }
+	} else {
+		// if positive leave unchanged (additional 0-bytes will be ignored)
+		return new(big.Int).SetBytes(bytesIn), nil
+	}
 }
 
 /**
  * Returns a byte array containing the two's-complement representation of this big.Int.
- * The byte array will be in big-endian byte-order: the most significant byte is in the 
- * zeroth element. The array will contain the minimum number of bytes required to represent 
- * this BigInteger, including at least one sign bit, which is (ceil((this.bitLength() + 1)/8)). 
+ * The byte array will be in big-endian byte-order: the most significant byte is in the
+ * zeroth element. The array will contain the minimum number of bytes required to represent
+ * this BigInteger, including at least one sign bit, which is (ceil((this.bitLength() + 1)/8)).
  */
 func ToByteArray(in *big.Int) []byte {
 
@@ -74,16 +74,16 @@ func ToByteArray(in *big.Int) []byte {
 	length := len(bytes)
 
 	if length == 0 {
-		return []byte { 0 };
+		return []byte{0}
 	}
 
 	highestByte := bytes[0]
 	var convertedBytes []byte
 
 	if !isNegative {
-		if (highestByte & 128) !=0 {
+		if (highestByte & 128) != 0 {
 
-			convertedBytes = make([]byte, length + 1)
+			convertedBytes = make([]byte, length+1)
 			convertedBytes[0] = 0
 			copy(convertedBytes[1:], bytes)
 			return convertedBytes
@@ -91,9 +91,9 @@ func ToByteArray(in *big.Int) []byte {
 			return bytes
 		}
 	} else {
-		if (highestByte & 128) !=0 {
+		if (highestByte & 128) != 0 {
 
-			convertedBytes = make([]byte, length + 1)
+			convertedBytes = make([]byte, length+1)
 			convertedBytes[0] = 255
 			copy(convertedBytes[1:], FlipBytes(bytes))
 		} else {
@@ -110,13 +110,13 @@ func ToByteArray(in *big.Int) []byte {
  * Flips all bytes in each of the array's elements.
  * Returns the flipped elements.
  */
-func FlipBytes(bytesIn [] byte) []byte {
+func FlipBytes(bytesIn []byte) []byte {
 
 	length := len(bytesIn)
 	flippedBytes := make([]byte, length)
 
 	for i := 0; i < length; i++ {
-		flippedBytes[i] = bytesIn[i] ^ 255;
+		flippedBytes[i] = bytesIn[i] ^ 255
 	}
 	return flippedBytes
 }

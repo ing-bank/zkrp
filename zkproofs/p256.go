@@ -5,7 +5,7 @@ Encapsulates secp256k1 elliptic curve.
 package zkproofs
 
 import (
-	"../byteconversion"
+	"./util/byteconversion"
 	"bytes"
 	"crypto/sha256"
 	"errors"

@@ -24,7 +24,7 @@ Asiacrypt 2008
 package zkproofs
 
 import (
-	"../crypto/bn256"
+	"./crypto/bn256"
 	"bytes"
 	"crypto/rand"
 	"errors"

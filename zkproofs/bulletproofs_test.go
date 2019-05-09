@@ -17,7 +17,7 @@
 package zkproofs
 
 import (
-	"../crypto/bn256"
+	"./crypto/bn256"
 	"crypto/rand"
 	"fmt"
 	"math/big"

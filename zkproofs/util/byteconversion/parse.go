@@ -17,8 +17,8 @@
 package byteconversion
 
 import (
-	"math/big"
 	"errors"
+	"math/big"
 )
 
 var (
@@ -29,37 +29,37 @@ var (
 func ParseInput(in []byte) ([]*big.Int, error) {
 
 	prevIndex := 0
-	var output[] *big.Int
+	var output []*big.Int
 
 	for index, element := range in {
 
 		if element == 44 {
-		    newInt, err := ConvertToBigInt(in[prevIndex:index])
-		    if err != nil {
-		        return nil, err
-		    }
+			newInt, err := ConvertToBigInt(in[prevIndex:index])
+			if err != nil {
+				return nil, err
+			}
 
 			output = append(output, newInt)
 			prevIndex = index + 1
 		}
 	}
 
-    newInt, err := ConvertToBigInt(in[prevIndex:])
-    if err != nil {
-        return nil, err
-    }
+	newInt, err := ConvertToBigInt(in[prevIndex:])
+	if err != nil {
+		return nil, err
+	}
 	return append(output, newInt), nil
 }
 
 // Decodes a byte array (ASCII encoding of a signed integer) into a big integer
 func ConvertToBigInt(in []byte) (*big.Int, error) {
 
-    // Validate
-    for index, element := range in {
-        if !((element >= 48 && element <= 57) || (index == 0 && element == 45)) {
-            return nil, errInvalidBigInteger
-        }
-    }
+	// Validate
+	for index, element := range in {
+		if !((element >= 48 && element <= 57) || (index == 0 && element == 45)) {
+			return nil, errInvalidBigInteger
+		}
+	}
 
 	s := string(in)
 	i := new(big.Int)

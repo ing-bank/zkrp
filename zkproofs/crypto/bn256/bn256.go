@@ -66,14 +66,14 @@ func (e *G1) SetInfinity() *G1 {
 }
 
 // ScalarBaseMult sets e to g*k where g is the generator of the group and
-// then returns e. 
+// then returns e.
 // This method was updated to deal with negative numbers.
 func (e *G1) ScalarBaseMult(k *big.Int) *G1 {
 	if e.p == nil {
 		e.p = newCurvePoint(nil)
 	}
 	cmp := k.Cmp(big.NewInt(0))
-	if cmp >=0 {
+	if cmp >= 0 {
 		if cmp == 0 {
 			e.p.SetInfinity()
 		} else {
@@ -92,7 +92,7 @@ func (e *G1) ScalarMult(a *G1, k *big.Int) *G1 {
 		e.p = newCurvePoint(nil)
 	}
 	cmp := k.Cmp(big.NewInt(0))
-	if cmp >=0 {
+	if cmp >= 0 {
 		if cmp == 0 {
 			e.p.SetInfinity()
 		} else {
@@ -222,7 +222,7 @@ func (e *G2) ScalarBaseMult(k *big.Int) *G2 {
 	if e.p == nil {
 		e.p = newTwistPoint(nil)
 	}
-	if k.Cmp(big.NewInt(0)) >=0 {
+	if k.Cmp(big.NewInt(0)) >= 0 {
 		e.p.Mul(twistGen, k, new(bnPool))
 	} else {
 		e.p.Negative(e.p.Mul(twistGen, new(big.Int).Abs(k), new(bnPool)), new(bnPool))
@@ -236,7 +236,7 @@ func (e *G2) ScalarMult(a *G2, k *big.Int) *G2 {
 	if e.p == nil {
 		e.p = newTwistPoint(nil)
 	}
-	if k.Cmp(big.NewInt(0)) >=0 {
+	if k.Cmp(big.NewInt(0)) >= 0 {
 		e.p.Mul(a.p, k, new(bnPool))
 	} else {
 		e.p.Negative(e.p.Mul(a.p, new(big.Int).Abs(k), new(bnPool)), new(bnPool))
@@ -344,7 +344,7 @@ func (e *GT) ScalarMult(a *GT, k *big.Int) *GT {
 
 func (e *GT) Exp(a *GT, k *big.Int) *GT {
 	var returnValue *GT
-	if k.Cmp(big.NewInt(0)) >=0 {
+	if k.Cmp(big.NewInt(0)) >= 0 {
 		returnValue = a.ScalarMult(a, k)
 	} else {
 		returnValue = a.Invert(a.ScalarMult(a, new(big.Int).Abs(k)))
@@ -361,7 +361,7 @@ func (e *GT) Invert(a *GT) *GT {
 }
 
 // SetZero returns true iff a = 0.
-func (e *G1) SetZero()  {
+func (e *G1) SetZero() {
 	e.p.SetInfinity()
 }
 
@@ -402,7 +402,6 @@ func (e *GT) Neg(a *GT) *GT {
 	e.p.Invert(a.p, new(bnPool))
 	return e
 }
-
 
 // Marshal converts n into a byte slice.
 func (n *GT) Marshal() []byte {

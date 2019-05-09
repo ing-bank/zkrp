@@ -24,7 +24,7 @@ Eurocrypt 2004
 */
 
 import (
-	"../crypto/bn256"
+	"./crypto/bn256"
 	"crypto/rand"
 	"errors"
 	"math/big"
