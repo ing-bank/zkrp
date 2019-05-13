@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-package zkproofs
+package zkpsdk
 
 /*
 This file contains the implementation of the BB signature scheme proposed in the paper:
@@ -24,9 +24,9 @@ Eurocrypt 2004
 */
 
 import (
-	"./crypto/bn256"
 	"crypto/rand"
 	"errors"
+	"github.com/ing-bank/zkpsdk/crypto/bn256"
 	"math/big"
 )
 

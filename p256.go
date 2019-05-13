@@ -2,14 +2,14 @@
 Encapsulates secp256k1 elliptic curve.
 */
 
-package zkproofs
+package zkpsdk
 
 import (
-	"./util/byteconversion"
 	"bytes"
 	"crypto/sha256"
 	"errors"
-	"github.com/ing-bank/zkproofs/go-ethereum/crypto/secp256k1"
+	"github.com/ethereum/go-ethereum/crypto/secp256k1"
+	"github.com/ing-bank/zkpsdk/util/byteconversion"
 	"math/big"
 	"strconv"
 )

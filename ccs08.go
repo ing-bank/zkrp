@@ -21,13 +21,13 @@ Jan Camenisch, Rafik Chaabouni, abhi shelat
 Asiacrypt 2008
 */
 
-package zkproofs
+package zkpsdk
 
 import (
-	"./crypto/bn256"
 	"bytes"
 	"crypto/rand"
 	"errors"
+	"github.com/ing-bank/zkpsdk/crypto/bn256"
 	"math"
 	"math/big"
 	"strconv"

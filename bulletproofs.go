@@ -21,15 +21,15 @@ Benedikt Bunz, Jonathan Bootle, Dan Boneh, Andrew Poelstra, Pieter Wuille and Gr
 Asiacrypt 2008
 */
 
-package zkproofs
+package zkpsdk
 
 import (
-	"./util/byteconversion"
 	"bytes"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
+	"github.com/ing-bank/zkpsdk/util/byteconversion"
 	"io/ioutil"
 	"math"
 	"math/big"

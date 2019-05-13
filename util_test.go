@@ -14,20 +14,4 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-/*
-This file contains the implementation of the ZKRP scheme proposed in the paper:
-Efficient Protocols for Set Membership and Range Proofs
-Jan Camenisch, Rafik Chaabouni, abhi shelat
-Asiacrypt 2008
-*/
-
-package zkproofs
-
-type izkrp interface {
-	//Commit()
-	Setup(a,b int64)
-	Prove()
-	Verify() (bool, error)
-}
-
-
+package zkpsdk

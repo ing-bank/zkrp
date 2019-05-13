@@ -1,8 +1,8 @@
-package zkproofs
+package zkpsdk
 
 import (
 	"crypto/rand"
-	"github.com/ing-bank/zkproofs/go-ethereum/crypto/secp256k1"
+	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"math/big"
 	"testing"
 )

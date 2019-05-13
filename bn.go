@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-package zkproofs
+package zkpsdk
 
 import (
-	"./util/byteconversion"
 	"crypto/sha256"
+	"github.com/ing-bank/zkpsdk/util/byteconversion"
 	"math/big"
 )
 
