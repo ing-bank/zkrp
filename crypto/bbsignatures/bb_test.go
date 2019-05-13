@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-package zkpsdk
+package bbsignatures
 
 import (
 	"math/big"
@@ -22,9 +22,9 @@ import (
 )
 
 func TestKeyGen(t *testing.T) {
-	kp, _ := keygen()
-	signature, _ := sign(big.NewInt(42), kp.privk)
-	res, _ := verify(signature, big.NewInt(42), kp.pubk)
+	kp, _ := Keygen()
+	signature, _ := Sign(big.NewInt(42), kp.Privk)
+	res, _ := verify(signature, big.NewInt(42), kp.Pubk)
 	if res != true {
 		t.Errorf("Assert failure: expected true, actual: %t", res)
 		t.Fail()

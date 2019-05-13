@@ -27,6 +27,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"errors"
+	"github.com/ing-bank/zkpsdk/crypto/bbsignatures"
 	"github.com/ing-bank/zkpsdk/crypto/bn256"
 	"github.com/ing-bank/zkpsdk/util/bn"
 	"math"
@@ -42,7 +43,7 @@ type paramsSet struct {
 	signatures map[int64]*bn256.G2
 	H          *bn256.G2
 	// TODO:must protect the private key
-	kp keypair
+	kp bbsignatures.Keypair
 	// u determines the amount of signatures we need in the public params.
 	// Each signature can be compressed to just 1 field element of 256 bits.
 	// Then the parameters have minimum size equal to 256*u bits.
@@ -59,7 +60,7 @@ type paramsUL struct {
 	signatures map[string]*bn256.G2
 	H          *bn256.G2
 	// TODO:must protect the private key
-	kp keypair
+	kp bbsignatures.Keypair
 	// u determines the amount of signatures we need in the public params.
 	// Each signature can be compressed to just 1 field element of 256 bits.
 	// Then the parameters have minimum size equal to 256*u bits.
@@ -99,11 +100,11 @@ func SetupSet(s []int64) (paramsSet, error) {
 		i int
 		p paramsSet
 	)
-	p.kp, _ = keygen()
+	p.kp, _ = bbsignatures.Keygen()
 
 	p.signatures = make(map[int64]*bn256.G2)
 	for i = 0; i < len(s); i++ {
-		sig_i, _ := sign(new(big.Int).SetInt64(int64(s[i])), p.kp.privk)
+		sig_i, _ := bbsignatures.Sign(new(big.Int).SetInt64(int64(s[i])), p.kp.Privk)
 		p.signatures[s[i]] = sig_i
 	}
 	//TODO: protect the 'master' key
@@ -122,11 +123,11 @@ func SetupUL(u, l int64) (paramsUL, error) {
 		i int64
 		p paramsUL
 	)
-	p.kp, _ = keygen()
+	p.kp, _ = bbsignatures.Keygen()
 
 	p.signatures = make(map[string]*bn256.G2)
 	for i = 0; i < u; i++ {
-		sig_i, _ := sign(new(big.Int).SetInt64(i), p.kp.privk)
+		sig_i, _ := bbsignatures.Sign(new(big.Int).SetInt64(i), p.kp.Privk)
 		p.signatures[strconv.FormatInt(i, 10)] = sig_i
 	}
 	//TODO: protect the 'master' key
@@ -275,7 +276,7 @@ func VerifySet(proof_out *proofSet, p *paramsSet) (bool, error) {
 
 	r2 = true
 	// a == [e(V,y)^c].[e(V,g)^-zsig].[e(g,g)^zv]
-	p1 = bn256.Pair(p.kp.pubk, proof_out.V)
+	p1 = bn256.Pair(p.kp.Pubk, proof_out.V)
 	p1.ScalarMult(p1, proof_out.c)
 	p2 = bn256.Pair(G1, proof_out.V)
 	p2.ScalarMult(p2, proof_out.zsig)
@@ -317,7 +318,7 @@ func VerifyUL(proof_out *proofUL, p *paramsUL) (bool, error) {
 	r2 = true
 	for i = 0; i < p.l; i++ {
 		// a == [e(V,y)^c].[e(V,g)^-zsig].[e(g,g)^zv]
-		p1 = bn256.Pair(p.kp.pubk, proof_out.V[i])
+		p1 = bn256.Pair(p.kp.Pubk, proof_out.V[i])
 		p1.ScalarMult(p1, proof_out.c)
 		p2 = bn256.Pair(G1, proof_out.V[i])
 		p2.ScalarMult(p2, proof_out.zsig[i])

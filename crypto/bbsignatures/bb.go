@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-package zkpsdk
+package bbsignatures
 
 /*
 This file contains the implementation of the BB signature scheme proposed in the paper:
@@ -31,25 +31,25 @@ import (
 	"math/big"
 )
 
-type keypair struct {
-	pubk  *bn256.G1
-	privk *big.Int
+type Keypair struct {
+	Pubk  *bn256.G1
+	Privk *big.Int
 }
 
 /*
 keygen is responsible for the key generation.
 */
-func keygen() (keypair, error) {
+func Keygen() (Keypair, error) {
 	var (
-		kp  keypair
+		kp  Keypair
 		e   error
 		res bool
 	)
-	kp.privk, e = rand.Int(rand.Reader, bn256.Order)
+	kp.Privk, e = rand.Int(rand.Reader, bn256.Order)
 	if e != nil {
 		return kp, e
 	}
-	kp.pubk, res = new(bn256.G1).Unmarshal(new(bn256.G1).ScalarBaseMult(kp.privk).Marshal())
+	kp.Pubk, res = new(bn256.G1).Unmarshal(new(bn256.G1).ScalarBaseMult(kp.Privk).Marshal())
 	if res {
 		return kp, errors.New("Could not compute scalar multiplication.")
 	}
@@ -59,7 +59,7 @@ func keygen() (keypair, error) {
 /*
 sign receives as input a message and a private key and outputs a digital signature.
 */
-func sign(m *big.Int, privk *big.Int) (*bn256.G2, error) {
+func Sign(m *big.Int, privk *big.Int) (*bn256.G2, error) {
 	var (
 		res       bool
 		signature *bn256.G2
