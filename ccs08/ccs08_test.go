@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-package zkpsdk
+package ccs08
 
 import (
 	"crypto/rand"
 	"fmt"
 	"github.com/ing-bank/zkpsdk/crypto/bn256"
+	. "github.com/ing-bank/zkpsdk/util"
 	"github.com/ing-bank/zkpsdk/util/bn"
 	"math/big"
 	"testing"

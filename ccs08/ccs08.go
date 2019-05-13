@@ -21,7 +21,7 @@ Jan Camenisch, Rafik Chaabouni, abhi shelat
 Asiacrypt 2008
 */
 
-package zkpsdk
+package ccs08
 
 import (
 	"bytes"
@@ -29,6 +29,7 @@ import (
 	"errors"
 	"github.com/ing-bank/zkpsdk/crypto/bbsignatures"
 	"github.com/ing-bank/zkpsdk/crypto/bn256"
+	. "github.com/ing-bank/zkpsdk/util"
 	"github.com/ing-bank/zkpsdk/util/bn"
 	"math"
 	"math/big"

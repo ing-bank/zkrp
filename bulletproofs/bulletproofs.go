@@ -21,7 +21,7 @@ Benedikt Bunz, Jonathan Bootle, Dan Boneh, Andrew Poelstra, Pieter Wuille and Gr
 Asiacrypt 2008
 */
 
-package zkpsdk
+package bulletproofs
 
 import (
 	"bytes"
@@ -30,6 +30,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/ing-bank/zkpsdk/crypto/p256"
+	. "github.com/ing-bank/zkpsdk/util"
 	"github.com/ing-bank/zkpsdk/util/bn"
 	"github.com/ing-bank/zkpsdk/util/byteconversion"
 	"io/ioutil"
