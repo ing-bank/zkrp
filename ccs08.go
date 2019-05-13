@@ -28,6 +28,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"github.com/ing-bank/zkpsdk/crypto/bn256"
+	"github.com/ing-bank/zkpsdk/util/bn"
 	"math"
 	"math/big"
 	"strconv"
@@ -176,14 +177,14 @@ func ProveSet(x int64, r *big.Int, p paramsSet) (proofSet, error) {
 	proof_out.C, _ = Commit(new(big.Int).SetInt64(x), r, p.H)
 	// Fiat-Shamir heuristic
 	proof_out.c, _ = HashSet(proof_out.a, proof_out.D)
-	proof_out.c = Mod(proof_out.c, bn256.Order)
+	proof_out.c = bn.Mod(proof_out.c, bn256.Order)
 
-	proof_out.zr = Sub(proof_out.m, Multiply(r, proof_out.c))
-	proof_out.zr = Mod(proof_out.zr, bn256.Order)
-	proof_out.zsig = Sub(proof_out.s, Multiply(new(big.Int).SetInt64(x), proof_out.c))
-	proof_out.zsig = Mod(proof_out.zsig, bn256.Order)
-	proof_out.zv = Sub(proof_out.t, Multiply(v, proof_out.c))
-	proof_out.zv = Mod(proof_out.zv, bn256.Order)
+	proof_out.zr = bn.Sub(proof_out.m, bn.Multiply(r, proof_out.c))
+	proof_out.zr = bn.Mod(proof_out.zr, bn256.Order)
+	proof_out.zsig = bn.Sub(proof_out.s, bn.Multiply(new(big.Int).SetInt64(x), proof_out.c))
+	proof_out.zsig = bn.Mod(proof_out.zsig, bn256.Order)
+	proof_out.zv = bn.Sub(proof_out.t, bn.Multiply(v, proof_out.c))
+	proof_out.zv = bn.Mod(proof_out.zv, bn256.Order)
 	return proof_out, nil
 }
 
@@ -226,7 +227,7 @@ func ProveUL(x, r *big.Int, p paramsUL) (proofUL, error) {
 
 			ui := new(big.Int).Exp(new(big.Int).SetInt64(p.u), new(big.Int).SetInt64(i), nil)
 			muisi := new(big.Int).Mul(proof_out.s[i], ui)
-			muisi = Mod(muisi, bn256.Order)
+			muisi = bn.Mod(muisi, bn256.Order)
 			aux := new(bn256.G2).ScalarBaseMult(muisi)
 			D.Add(D, aux)
 		} else {
@@ -240,15 +241,15 @@ func ProveUL(x, r *big.Int, p paramsUL) (proofUL, error) {
 	proof_out.C, _ = Commit(x, r, p.H)
 	// Fiat-Shamir heuristic
 	proof_out.c, _ = Hash(proof_out.a, proof_out.D)
-	proof_out.c = Mod(proof_out.c, bn256.Order)
+	proof_out.c = bn.Mod(proof_out.c, bn256.Order)
 
-	proof_out.zr = Sub(proof_out.m, Multiply(r, proof_out.c))
-	proof_out.zr = Mod(proof_out.zr, bn256.Order)
+	proof_out.zr = bn.Sub(proof_out.m, bn.Multiply(r, proof_out.c))
+	proof_out.zr = bn.Mod(proof_out.zr, bn256.Order)
 	for i = 0; i < p.l; i++ {
-		proof_out.zsig[i] = Sub(proof_out.s[i], Multiply(new(big.Int).SetInt64(decx[i]), proof_out.c))
-		proof_out.zsig[i] = Mod(proof_out.zsig[i], bn256.Order)
-		proof_out.zv[i] = Sub(proof_out.t[i], Multiply(v[i], proof_out.c))
-		proof_out.zv[i] = Mod(proof_out.zv[i], bn256.Order)
+		proof_out.zsig[i] = bn.Sub(proof_out.s[i], bn.Multiply(new(big.Int).SetInt64(decx[i]), proof_out.c))
+		proof_out.zsig[i] = bn.Mod(proof_out.zsig[i], bn256.Order)
+		proof_out.zv[i] = bn.Sub(proof_out.t[i], bn.Multiply(v[i], proof_out.c))
+		proof_out.zv[i] = bn.Mod(proof_out.zv[i], bn256.Order)
 	}
 	return proof_out, nil
 }
@@ -304,7 +305,7 @@ func VerifyUL(proof_out *proofUL, p *paramsUL) (bool, error) {
 	for i = 0; i < p.l; i++ {
 		ui := new(big.Int).Exp(new(big.Int).SetInt64(p.u), new(big.Int).SetInt64(i), nil)
 		muizsigi := new(big.Int).Mul(proof_out.zsig[i], ui)
-		muizsigi = Mod(muizsigi, bn256.Order)
+		muizsigi = bn.Mod(muizsigi, bn256.Order)
 		aux := new(bn256.G2).ScalarBaseMult(muizsigi)
 		D.Add(D, aux)
 	}

@@ -1,4 +1,4 @@
-package zkpsdk
+package p256
 
 import (
 	"crypto/rand"

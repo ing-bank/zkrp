@@ -29,6 +29,8 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
+	"github.com/ing-bank/zkpsdk/crypto/p256"
+	"github.com/ing-bank/zkpsdk/util/bn"
 	"github.com/ing-bank/zkpsdk/util/byteconversion"
 	"io/ioutil"
 	"math"
@@ -36,7 +38,7 @@ import (
 )
 
 var (
-	ORDER = CURVE.N
+	ORDER = p256.CURVE.N
 	SEEDH = "BulletproofsDoesNotNeedTrustedSetupH"
 	SEEDU = "BulletproofsDoesNotNeedTrustedSetupU"
 	SAVE  = true
@@ -47,10 +49,10 @@ Bulletproofs parameters.
 */
 type bp struct {
 	N    int64
-	G    *p256
-	H    *p256
-	Gg   []*p256
-	Hh   []*p256
+	G    *p256.P256
+	H    *p256.P256
+	Gg   []*p256.P256
+	Hh   []*p256.P256
 	Zkip bip
 }
 
@@ -58,16 +60,16 @@ type bp struct {
 Bulletproofs proof.
 */
 type proofBP struct {
-	V       *p256
-	A       *p256
-	S       *p256
-	T1      *p256
-	T2      *p256
+	V       *p256.P256
+	A       *p256.P256
+	S       *p256.P256
+	T1      *p256.P256
+	T2      *p256.P256
 	Taux    *big.Int
 	Mu      *big.Int
 	Tprime  *big.Int
 	Proofip proofBip
-	Commit  *p256
+	Commit  *p256.P256
 }
 
 type (
@@ -185,43 +187,43 @@ func (p *proofBP) UnmarshalJSON(data []byte) error {
 	valGgy, _ := new(big.Int).SetString(aux.Proofip.Gg.Y, 10)
 	valHhx, _ := new(big.Int).SetString(aux.Proofip.Hh.X, 10)
 	valHhy, _ := new(big.Int).SetString(aux.Proofip.Hh.Y, 10)
-	p.V = &p256{
+	p.V = &p256.P256{
 		X: valVX,
 		Y: valVY,
 	}
-	p.A = &p256{
+	p.A = &p256.P256{
 		X: valAX,
 		Y: valAY,
 	}
-	p.S = &p256{
+	p.S = &p256.P256{
 		X: valSX,
 		Y: valSY,
 	}
-	p.T1 = &p256{
+	p.T1 = &p256.P256{
 		X: valT1X,
 		Y: valT1Y,
 	}
-	p.T2 = &p256{
+	p.T2 = &p256.P256{
 		X: valT2X,
 		Y: valT2Y,
 	}
-	p.Commit = &p256{
+	p.Commit = &p256.P256{
 		X: valCommitX,
 		Y: valCommitY,
 	}
-	valU := &p256{
+	valU := &p256.P256{
 		X: valUx,
 		Y: valUy,
 	}
-	valP := &p256{
+	valP := &p256.P256{
 		X: valPx,
 		Y: valPy,
 	}
-	valGg := &p256{
+	valGg := &p256.P256{
 		X: valGgx,
 		Y: valGgy,
 	}
-	valHh := &p256{
+	valHh := &p256.P256{
 		X: valHhx,
 		Y: valHhy,
 	}
@@ -229,8 +231,8 @@ func (p *proofBP) UnmarshalJSON(data []byte) error {
 	p.Mu, _ = new(big.Int).SetString(aux.Mu, 10)
 	p.Tprime, _ = new(big.Int).SetString(aux.Tprime, 10)
 	logn := len(aux.Proofip.Ls)
-	valLs := make([]*p256, logn)
-	valRs := make([]*p256, logn)
+	valLs := make([]*p256.P256, logn)
+	valRs := make([]*p256.P256, logn)
 	var (
 		i      int
 		valLsx *big.Int
@@ -242,10 +244,10 @@ func (p *proofBP) UnmarshalJSON(data []byte) error {
 	for i < logn {
 		valLsx, _ = new(big.Int).SetString(aux.Proofip.Ls[i].X, 10)
 		valLsy, _ = new(big.Int).SetString(aux.Proofip.Ls[i].Y, 10)
-		valLs[i] = &p256{X: valLsx, Y: valLsy}
+		valLs[i] = &p256.P256{X: valLsx, Y: valLsy}
 		valRsx, _ = new(big.Int).SetString(aux.Proofip.Rs[i].X, 10)
 		valRsy, _ = new(big.Int).SetString(aux.Proofip.Rs[i].Y, 10)
-		valRs[i] = &p256{X: valRsx, Y: valRsy}
+		valRs[i] = &p256.P256{X: valRsx, Y: valRsy}
 		i = i + 1
 	}
 	p.Proofip = proofBip{
@@ -318,8 +320,8 @@ func (s *bp) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	n := aux.N
-	valGg := make([]*p256, n)
-	valHh := make([]*p256, n)
+	valGg := make([]*p256.P256, n)
+	valHh := make([]*p256.P256, n)
 	var (
 		i      int64
 		valGgx *big.Int
@@ -331,10 +333,10 @@ func (s *bp) UnmarshalJSON(data []byte) error {
 	for i < n {
 		valGgx, _ = new(big.Int).SetString(aux.Zkip.Gg[i].X, 10)
 		valGgy, _ = new(big.Int).SetString(aux.Zkip.Gg[i].Y, 10)
-		valGg[i] = &p256{X: valGgx, Y: valGgy}
+		valGg[i] = &p256.P256{X: valGgx, Y: valGgy}
 		valHhx, _ = new(big.Int).SetString(aux.Zkip.Hh[i].X, 10)
 		valHhy, _ = new(big.Int).SetString(aux.Zkip.Hh[i].Y, 10)
-		valHh[i] = &p256{X: valHhx, Y: valHhy}
+		valHh[i] = &p256.P256{X: valHhx, Y: valHhy}
 		i = i + 1
 	}
 	valN := aux.N
@@ -345,15 +347,15 @@ func (s *bp) UnmarshalJSON(data []byte) error {
 	valHy, _ := new(big.Int).SetString(aux.Zkip.H.Y, 10)
 	valPx, _ := new(big.Int).SetString(aux.Zkip.P.X, 10)
 	valPy, _ := new(big.Int).SetString(aux.Zkip.P.Y, 10)
-	valUu := &p256{
+	valUu := &p256.P256{
 		X: valUux,
 		Y: valUuy,
 	}
-	valH := &p256{
+	valH := &p256.P256{
 		X: valHx,
 		Y: valHy,
 	}
-	valP := &p256{
+	valP := &p256.P256{
 		X: valPx,
 		Y: valPy,
 	}
@@ -389,12 +391,12 @@ func VectorCopy(a *big.Int, n int64) ([]*big.Int, error) {
 /*
 VectorCopy returns a vector composed by copies of a.
 */
-func VectorG1Copy(a *p256, n int64) ([]*p256, error) {
+func VectorG1Copy(a *p256.P256, n int64) ([]*p256.P256, error) {
 	var (
 		i      int64
-		result []*p256
+		result []*p256.P256
 	)
-	result = make([]*p256, n)
+	result = make([]*p256.P256, n)
 	i = 0
 	for i < n {
 		result[i] = a
@@ -436,8 +438,8 @@ func VectorAdd(a, b []*big.Int) ([]*big.Int, error) {
 	i = 0
 	result = make([]*big.Int, n)
 	for i < n {
-		result[i] = Add(a[i], b[i])
-		result[i] = Mod(result[i], ORDER)
+		result[i] = bn.Add(a[i], b[i])
+		result[i] = bn.Mod(result[i], ORDER)
 		i = i + 1
 	}
 	return result, nil
@@ -459,8 +461,8 @@ func VectorSub(a, b []*big.Int) ([]*big.Int, error) {
 	i = 0
 	result = make([]*big.Int, n)
 	for i < n {
-		result[i] = Sub(a[i], b[i])
-		result[i] = Mod(result[i], ORDER)
+		result[i] = bn.Sub(a[i], b[i])
+		result[i] = bn.Mod(result[i], ORDER)
 		i = i + 1
 	}
 	return result, nil
@@ -478,8 +480,8 @@ func VectorScalarMul(a []*big.Int, b *big.Int) ([]*big.Int, error) {
 	i = 0
 	result = make([]*big.Int, n)
 	for i < n {
-		result[i] = Multiply(a[i], b)
-		result[i] = Mod(result[i], ORDER)
+		result[i] = bn.Multiply(a[i], b)
+		result[i] = bn.Mod(result[i], ORDER)
 		i = i + 1
 	}
 	return result, nil
@@ -501,8 +503,8 @@ func VectorMul(a, b []*big.Int) ([]*big.Int, error) {
 	i = 0
 	result = make([]*big.Int, n)
 	for i < n {
-		result[i] = Multiply(a[i], b[i])
-		result[i] = Mod(result[i], ORDER)
+		result[i] = bn.Multiply(a[i], b[i])
+		result[i] = bn.Mod(result[i], ORDER)
 		i = i + 1
 	}
 	return result, nil
@@ -511,9 +513,9 @@ func VectorMul(a, b []*big.Int) ([]*big.Int, error) {
 /*
 VectorECMul computes vector EC addition componentwisely.
 */
-func VectorECAdd(a, b []*p256) ([]*p256, error) {
+func VectorECAdd(a, b []*p256.P256) ([]*p256.P256, error) {
 	var (
-		result  []*p256
+		result  []*p256.P256
 		i, n, m int64
 	)
 	n = int64(len(a))
@@ -521,10 +523,10 @@ func VectorECAdd(a, b []*p256) ([]*p256, error) {
 	if n != m {
 		return nil, errors.New("Size of first argument is different from size of second argument.")
 	}
-	result = make([]*p256, n)
+	result = make([]*p256.P256, n)
 	i = 0
 	for i < n {
-		result[i] = new(p256).Multiply(a[i], b[i])
+		result[i] = new(p256.P256).Multiply(a[i], b[i])
 		i = i + 1
 	}
 	return result, nil
@@ -546,9 +548,9 @@ func ScalarProduct(a, b []*big.Int) (*big.Int, error) {
 	i = 0
 	result = GetBigInt("0")
 	for i < n {
-		ab := Multiply(a[i], b[i])
+		ab := bn.Multiply(a[i], b[i])
 		result.Add(result, ab)
-		result = Mod(result, ORDER)
+		result = bn.Mod(result, ORDER)
 		i = i + 1
 	}
 	return result, nil
@@ -557,9 +559,9 @@ func ScalarProduct(a, b []*big.Int) (*big.Int, error) {
 /*
 VectorExp computes Prod_i^n{a[i]^b[i]}.
 */
-func VectorExp(a []*p256, b []*big.Int) (*p256, error) {
+func VectorExp(a []*p256.P256, b []*big.Int) (*p256.P256, error) {
 	var (
-		result  *p256
+		result  *p256.P256
 		i, n, m int64
 	)
 	n = int64(len(a))
@@ -568,9 +570,9 @@ func VectorExp(a []*p256, b []*big.Int) (*p256, error) {
 		return nil, errors.New("Size of first argument is different from size of second argument.")
 	}
 	i = 0
-	result = new(p256).SetInfinity()
+	result = new(p256.P256).SetInfinity()
 	for i < n {
-		result.Multiply(result, new(p256).ScalarMult(a[i], b[i]))
+		result.Multiply(result, new(p256.P256).ScalarMult(a[i], b[i]))
 		i = i + 1
 	}
 	return result, nil
@@ -579,16 +581,16 @@ func VectorExp(a []*p256, b []*big.Int) (*p256, error) {
 /*
 VectorScalarExp computes a[i]^b for each i.
 */
-func VectorScalarExp(a []*p256, b *big.Int) ([]*p256, error) {
+func VectorScalarExp(a []*p256.P256, b *big.Int) ([]*p256.P256, error) {
 	var (
-		result []*p256
+		result []*p256.P256
 		i, n   int64
 	)
 	n = int64(len(a))
-	result = make([]*p256, n)
+	result = make([]*p256.P256, n)
 	i = 0
 	for i < n {
-		result[i] = new(p256).ScalarMult(a[i], b)
+		result[i] = new(p256.P256).ScalarMult(a[i], b)
 		i = i + 1
 	}
 	return result, nil
@@ -607,8 +609,8 @@ func PowerOf(x *big.Int, n int64) ([]*big.Int, error) {
 	i = 0
 	for i < n {
 		result[i] = current
-		current = Multiply(current, x)
-		current = Mod(current, ORDER)
+		current = bn.Multiply(current, x)
+		current = bn.Mod(current, ORDER)
 		i = i + 1
 	}
 	return result, nil
@@ -640,7 +642,7 @@ func ComputeAR(x []int64) ([]int64, error) {
 /*
 Hash is responsible for the computing a Zp element given elements from GT and G1.
 */
-func HashBP(A, S *p256) (*big.Int, *big.Int, error) {
+func HashBP(A, S *p256.P256) (*big.Int, *big.Int, error) {
 
 	digest1 := sha256.New()
 	var buffer bytes.Buffer
@@ -671,17 +673,17 @@ func HashBP(A, S *p256) (*big.Int, *big.Int, error) {
 /*
 Commitvector computes a commitment to the bit of the secret.
 */
-func CommitVector(aL, aR []int64, alpha *big.Int, G, H *p256, g, h []*p256, n int64) (*p256, error) {
+func CommitVector(aL, aR []int64, alpha *big.Int, G, H *p256.P256, g, h []*p256.P256, n int64) (*p256.P256, error) {
 	var (
 		i int64
-		R *p256
+		R *p256.P256
 	)
 	// Compute h^alpha.vg^aL.vh^aR
-	R = new(p256).ScalarMult(H, alpha)
+	R = new(p256.P256).ScalarMult(H, alpha)
 	i = 0
 	for i < n {
-		gaL := new(p256).ScalarMult(g[i], new(big.Int).SetInt64(aL[i]))
-		haR := new(p256).ScalarMult(h[i], new(big.Int).SetInt64(aR[i]))
+		gaL := new(p256.P256).ScalarMult(g[i], new(big.Int).SetInt64(aL[i]))
+		haR := new(p256.P256).ScalarMult(h[i], new(big.Int).SetInt64(aR[i]))
 		R.Multiply(R, gaL)
 		R.Multiply(R, haR)
 		i = i + 1
@@ -692,17 +694,17 @@ func CommitVector(aL, aR []int64, alpha *big.Int, G, H *p256, g, h []*p256, n in
 /*
 
  */
-func CommitVectorBig(aL, aR []*big.Int, alpha *big.Int, G, H *p256, g, h []*p256, n int64) (*p256, error) {
+func CommitVectorBig(aL, aR []*big.Int, alpha *big.Int, G, H *p256.P256, g, h []*p256.P256, n int64) (*p256.P256, error) {
 	var (
 		i int64
-		R *p256
+		R *p256.P256
 	)
 	// Compute h^alpha.vg^aL.vh^aR
-	R = new(p256).ScalarMult(H, alpha)
+	R = new(p256.P256).ScalarMult(H, alpha)
 	i = 0
 	for i < n {
-		R.Multiply(R, new(p256).ScalarMult(g[i], aL[i]))
-		R.Multiply(R, new(p256).ScalarMult(h[i], aR[i]))
+		R.Multiply(R, new(p256.P256).ScalarMult(g[i], aL[i]))
+		R.Multiply(R, new(p256.P256).ScalarMult(h[i], aR[i]))
 		i = i + 1
 	}
 	return R, nil
@@ -768,10 +770,10 @@ func (zkrp *bp) Delta(y, z *big.Int) (*big.Int, error) {
 		result *big.Int
 	)
 	// delta(y,z) = (z-z^2) . < 1^n, y^n > - z^3 . < 1^n, 2^n >
-	z2 := Multiply(z, z)
-	z2 = Mod(z2, ORDER)
-	z3 := Multiply(z2, z)
-	z3 = Mod(z3, ORDER)
+	z2 := bn.Multiply(z, z)
+	z2 = bn.Mod(z2, ORDER)
+	z3 := bn.Multiply(z2, z)
+	z3 = bn.Mod(z3, ORDER)
 
 	// < 1^n, y^n >
 	v1, _ := VectorCopy(new(big.Int).SetInt64(1), zkrp.N)
@@ -782,12 +784,12 @@ func (zkrp *bp) Delta(y, z *big.Int) (*big.Int, error) {
 	p2n, _ := PowerOf(new(big.Int).SetInt64(2), zkrp.N)
 	sp12, _ := ScalarProduct(v1, p2n)
 
-	result = Sub(z, z2)
-	result = Mod(result, ORDER)
-	result = Multiply(result, sp1y)
-	result = Mod(result, ORDER)
-	result = Sub(result, Multiply(z3, sp12))
-	result = Mod(result, ORDER)
+	result = bn.Sub(z, z2)
+	result = bn.Mod(result, ORDER)
+	result = bn.Multiply(result, sp1y)
+	result = bn.Mod(result, ORDER)
+	result = bn.Sub(result, bn.Multiply(z3, sp12))
+	result = bn.Mod(result, ORDER)
 
 	return result, nil
 }
@@ -810,15 +812,15 @@ func (zkrp *bp) Setup(a, b int64) {
 		i int64
 	)
 
-	zkrp.G = new(p256).ScalarBaseMult(new(big.Int).SetInt64(1))
-	zkrp.H, _ = MapToGroup(SEEDH)
+	zkrp.G = new(p256.P256).ScalarBaseMult(new(big.Int).SetInt64(1))
+	zkrp.H, _ = p256.MapToGroup(SEEDH)
 	zkrp.N = int64(math.Log2(float64(b)))
-	zkrp.Gg = make([]*p256, zkrp.N)
-	zkrp.Hh = make([]*p256, zkrp.N)
+	zkrp.Gg = make([]*p256.P256, zkrp.N)
+	zkrp.Hh = make([]*p256.P256, zkrp.N)
 	i = 0
 	for i < zkrp.N {
-		zkrp.Gg[i], _ = MapToGroup(SEEDH + "g" + string(i))
-		zkrp.Hh[i], _ = MapToGroup(SEEDH + "h" + string(i))
+		zkrp.Gg[i], _ = p256.MapToGroup(SEEDH + "g" + string(i))
+		zkrp.Hh[i], _ = p256.MapToGroup(SEEDH + "h" + string(i))
 		i = i + 1
 	}
 	//zkrp.SaveToDisk("setup.dat", nil)
@@ -895,18 +897,18 @@ func (zkrp *bp) Prove(secret *big.Int) (proofBP, error) {
 	// Add z^2.2^n to the result
 	// z^2 . 2^n
 	p2n, _ := PowerOf(new(big.Int).SetInt64(2), zkrp.N)
-	zsquared := Multiply(z, z)
+	zsquared := bn.Multiply(z, z)
 	z22n, _ := VectorScalarMul(p2n, zsquared)
 	ynaRzn, _ = VectorAdd(ynaRzn, z22n)
 	sp2, _ := ScalarProduct(sL, ynaRzn)
 
 	// sp1 + sp2
-	t1 := Add(sp1, sp2)
-	t1 = Mod(t1, ORDER)
+	t1 := bn.Add(sp1, sp2)
+	t1 = bn.Mod(t1, ORDER)
 
 	// compute t2: < sL, y^n . sR >
 	t2, _ := ScalarProduct(sL, ynsR)
-	t2 = Mod(t2, ORDER)
+	t2 = bn.Mod(t2, ORDER)
 
 	// compute T1
 	T1, _ := CommitG1(t1, tau1, zkrp.H)
@@ -937,27 +939,27 @@ func (zkrp *bp) Prove(secret *big.Int) (proofBP, error) {
 	tprime, _ := ScalarProduct(bl, br)
 
 	// Compute taux = tau2 . x^2 + tau1 . x + z^2 . gamma
-	taux := Multiply(tau2, Multiply(x, x))
-	taux = Add(taux, Multiply(tau1, x))
-	taux = Add(taux, Multiply(Multiply(z, z), gamma))
-	taux = Mod(taux, ORDER)
+	taux := bn.Multiply(tau2, bn.Multiply(x, x))
+	taux = bn.Add(taux, bn.Multiply(tau1, x))
+	taux = bn.Add(taux, bn.Multiply(bn.Multiply(z, z), gamma))
+	taux = bn.Mod(taux, ORDER)
 
 	// Compute mu = alpha + rho.x
-	mu := Multiply(rho, x)
-	mu = Add(mu, alpha)
-	mu = Mod(mu, ORDER)
+	mu := bn.Multiply(rho, x)
+	mu = bn.Add(mu, alpha)
+	mu = bn.Mod(mu, ORDER)
 
 	// Inner Product over (g, h', P.h^-mu, tprime)
 	// Compute h'
-	hprime := make([]*p256, zkrp.N)
+	hprime := make([]*p256.P256, zkrp.N)
 	// Switch generators
-	yinv := ModInverse(y, ORDER)
+	yinv := bn.ModInverse(y, ORDER)
 	expy := yinv
 	hprime[0] = zkrp.Hh[0]
 	i = 1
 	for i < zkrp.N {
-		hprime[i] = new(p256).ScalarMult(zkrp.Hh[i], expy)
-		expy = Multiply(expy, yinv)
+		hprime[i] = new(p256.P256).ScalarMult(zkrp.Hh[i], expy)
+		expy = bn.Multiply(expy, yinv)
 		i = i + 1
 	}
 
@@ -989,20 +991,20 @@ Verify returns true if and only if the proof is valid.
 func (zkrp *bp) Verify(proof proofBP) (bool, error) {
 	var (
 		i      int64
-		hprime []*p256
+		hprime []*p256.P256
 	)
-	hprime = make([]*p256, zkrp.N)
+	hprime = make([]*p256.P256, zkrp.N)
 	y, z, _ := HashBP(proof.A, proof.S)
 	x, _, _ := HashBP(proof.T1, proof.T2)
 
 	// Switch generators
-	yinv := ModInverse(y, ORDER)
+	yinv := bn.ModInverse(y, ORDER)
 	expy := yinv
 	hprime[0] = zkrp.Hh[0]
 	i = 1
 	for i < zkrp.N {
-		hprime[i] = new(p256).ScalarMult(zkrp.Hh[i], expy)
-		expy = Multiply(expy, yinv)
+		hprime[i] = new(p256.P256).ScalarMult(zkrp.Hh[i], expy)
+		expy = bn.Multiply(expy, yinv)
 		i = i + 1
 	}
 
@@ -1014,21 +1016,21 @@ func (zkrp *bp) Verify(proof proofBP) (bool, error) {
 	lhs, _ := CommitG1(proof.Tprime, proof.Taux, zkrp.H)
 
 	// Compute right hand side
-	z2 := Multiply(z, z)
-	z2 = Mod(z2, ORDER)
-	x2 := Multiply(x, x)
-	x2 = Mod(x2, ORDER)
+	z2 := bn.Multiply(z, z)
+	z2 = bn.Mod(z2, ORDER)
+	x2 := bn.Multiply(x, x)
+	x2 = bn.Mod(x2, ORDER)
 
-	rhs := new(p256).ScalarMult(proof.V, z2)
+	rhs := new(p256.P256).ScalarMult(proof.V, z2)
 
 	delta, _ := zkrp.Delta(y, z)
 
-	gdelta := new(p256).ScalarBaseMult(delta)
+	gdelta := new(p256.P256).ScalarBaseMult(delta)
 
 	rhs.Multiply(rhs, gdelta)
 
-	T1x := new(p256).ScalarMult(proof.T1, x)
-	T2x2 := new(p256).ScalarMult(proof.T2, x2)
+	T1x := new(p256.P256).ScalarMult(proof.T1, x)
+	T2x2 := new(p256.P256).ScalarMult(proof.T2, x2)
 
 	rhs.Multiply(rhs, T1x)
 	rhs.Multiply(rhs, T2x2)
@@ -1041,12 +1043,12 @@ func (zkrp *bp) Verify(proof proofBP) (bool, error) {
 	// Compute P - lhs  #################### Condition (66) ######################
 
 	// S^x
-	Sx := new(p256).ScalarMult(proof.S, x)
+	Sx := new(p256.P256).ScalarMult(proof.S, x)
 	// A.S^x
-	ASx := new(p256).Add(proof.A, Sx)
+	ASx := new(p256.P256).Add(proof.A, Sx)
 
 	// g^-z
-	mz := Sub(ORDER, z)
+	mz := bn.Sub(ORDER, z)
 	vmz, _ := VectorCopy(mz, zkrp.N)
 	gpmz, _ := VectorExp(zkrp.Gg, vmz)
 	//fmt.Println("############## gpmz ###############")
@@ -1058,13 +1060,13 @@ func (zkrp *bp) Verify(proof proofBP) (bool, error) {
 	zyn, _ := VectorMul(vy, vz)
 
 	p2n, _ := PowerOf(new(big.Int).SetInt64(2), zkrp.N)
-	zsquared := Multiply(z, z)
+	zsquared := bn.Multiply(z, z)
 	z22n, _ := VectorScalarMul(p2n, zsquared)
 
 	// z.y^n + z^2.2^n
 	zynz22n, _ := VectorAdd(zyn, z22n)
 
-	lP := new(p256)
+	lP := new(p256.P256)
 	lP.Add(ASx, gpmz)
 
 	// h'^(z.y^n + z^2.2^n)
@@ -1075,7 +1077,7 @@ func (zkrp *bp) Verify(proof proofBP) (bool, error) {
 	// Compute P - rhs  #################### Condition (67) ######################
 
 	// h^mu
-	rP := new(p256).ScalarMult(zkrp.H, proof.Mu)
+	rP := new(p256.P256).ScalarMult(zkrp.H, proof.Mu)
 	rP.Multiply(rP, proof.Commit)
 
 	// Subtract lhs and rhs and compare with poitn at infinity
@@ -1099,23 +1101,23 @@ Base struct for the Inner Product Argument.
 type bip struct {
 	N  int64
 	Cc *big.Int
-	Uu *p256
-	H  *p256
-	Gg []*p256
-	Hh []*p256
-	P  *p256
+	Uu *p256.P256
+	H  *p256.P256
+	Gg []*p256.P256
+	Hh []*p256.P256
+	P  *p256.P256
 }
 
 /*
 Struct that contains the Inner Product Proof.
 */
 type proofBip struct {
-	Ls []*p256
-	Rs []*p256
-	U  *p256
-	P  *p256
-	Gg *p256
-	Hh *p256
+	Ls []*p256.P256
+	Rs []*p256.P256
+	U  *p256.P256
+	P  *p256.P256
+	Gg *p256.P256
+	Hh *p256.P256
 	A  *big.Int
 	B  *big.Int
 	N  int64
@@ -1124,7 +1126,7 @@ type proofBip struct {
 /*
 HashIP is responsible for the computing a Zp element given elements from GT and G1.
 */
-func HashIP(g, h []*p256, P *p256, c *big.Int, n int64) (*big.Int, error) {
+func HashIP(g, h []*p256.P256, P *p256.P256, c *big.Int, n int64) (*big.Int, error) {
 	var (
 		i int64
 	)
@@ -1150,14 +1152,14 @@ func HashIP(g, h []*p256, P *p256, c *big.Int, n int64) (*big.Int, error) {
 /*
 CommitInnerProduct is responsible for calculating g^a.h^b.
 */
-func CommitInnerProduct(g, h []*p256, a, b []*big.Int) (*p256, error) {
+func CommitInnerProduct(g, h []*p256.P256, a, b []*big.Int) (*p256.P256, error) {
 	var (
-		result *p256
+		result *p256.P256
 	)
 
 	ga, _ := VectorExp(g, a)
 	hb, _ := VectorExp(h, b)
-	result = new(p256).Multiply(ga, hb)
+	result = new(p256.P256).Multiply(ga, hb)
 	return result, nil
 }
 
@@ -1165,19 +1167,19 @@ func CommitInnerProduct(g, h []*p256, a, b []*big.Int) (*p256, error) {
 Setup is responsible for computing the inner product basic parameters that are common to both
 Prove and Verify algorithms.
 */
-func (zkip *bip) Setup(H *p256, g, h []*p256, c *big.Int) (bip, error) {
+func (zkip *bip) Setup(H *p256.P256, g, h []*p256.P256, c *big.Int) (bip, error) {
 	var (
 		params bip
 	)
 
-	zkip.Gg = make([]*p256, zkip.N)
-	zkip.Hh = make([]*p256, zkip.N)
-	zkip.Uu, _ = MapToGroup(SEEDU)
+	zkip.Gg = make([]*p256.P256, zkip.N)
+	zkip.Hh = make([]*p256.P256, zkip.N)
+	zkip.Uu, _ = p256.MapToGroup(SEEDU)
 	zkip.H = H
 	zkip.Gg = g
 	zkip.Hh = h
 	zkip.Cc = c
-	zkip.P = new(p256).SetInfinity()
+	zkip.P = new(p256.P256).SetInfinity()
 
 	return params, nil
 }
@@ -1185,12 +1187,12 @@ func (zkip *bip) Setup(H *p256, g, h []*p256, c *big.Int) (bip, error) {
 /*
 Prove is responsible for the generation of the Inner Product Proof.
 */
-func (zkip *bip) Prove(a, b []*big.Int, P *p256) (proofBip, error) {
+func (zkip *bip) Prove(a, b []*big.Int, P *p256.P256) (proofBip, error) {
 	var (
 		proof proofBip
 		n, m  int64
-		Ls    []*p256
-		Rs    []*p256
+		Ls    []*p256.P256
+		Rs    []*p256.P256
 	)
 
 	n = int64(len(a))
@@ -1202,9 +1204,9 @@ func (zkip *bip) Prove(a, b []*big.Int, P *p256) (proofBip, error) {
 		// x = Hash(g,h,P,c)
 		x, _ := HashIP(zkip.Gg, zkip.Hh, P, zkip.Cc, zkip.N)
 		// Pprime = P.u^(x.c)
-		ux := new(p256).ScalarMult(zkip.Uu, x)
-		uxc := new(p256).ScalarMult(ux, zkip.Cc)
-		PP := new(p256).Multiply(P, uxc)
+		ux := new(p256.P256).ScalarMult(zkip.Uu, x)
+		uxc := new(p256.P256).ScalarMult(ux, zkip.Cc)
+		PP := new(p256.P256).Multiply(P, uxc)
 		// Execute Protocol 2 recursively
 		zkip.P = PP
 		proof, err := BIP(a, b, zkip.Gg, zkip.Hh, ux, zkip.P, n, Ls, Rs)
@@ -1218,12 +1220,12 @@ func (zkip *bip) Prove(a, b []*big.Int, P *p256) (proofBip, error) {
 /*
 BIP is the main recursive function that will be used to compute the inner product argument.
 */
-func BIP(a, b []*big.Int, g, h []*p256, u, P *p256, n int64, Ls, Rs []*p256) (proofBip, error) {
+func BIP(a, b []*big.Int, g, h []*p256.P256, u, P *p256.P256, n int64, Ls, Rs []*p256.P256) (proofBip, error) {
 	var (
 		proof                            proofBip
 		cL, cR, x, xinv, x2, x2inv       *big.Int
-		L, R, Lh, Rh, Pprime             *p256
-		gprime, hprime, gprime2, hprime2 []*p256
+		L, R, Lh, Rh, Pprime             *p256.P256
+		gprime, hprime, gprime2, hprime2 []*p256.P256
 		aprime, bprime, aprime2, bprime2 []*big.Int
 	)
 
@@ -1252,17 +1254,17 @@ func BIP(a, b []*big.Int, g, h []*p256, u, P *p256, n int64, Ls, Rs []*p256) (pr
 		L, _ = VectorExp(g[nprime:], a[:nprime])
 		Lh, _ = VectorExp(h[:nprime], b[nprime:])
 		L.Multiply(L, Lh)
-		L.Multiply(L, new(p256).ScalarMult(u, cL))
+		L.Multiply(L, new(p256.P256).ScalarMult(u, cL))
 
 		// Compute R = g[:n']^(a[n':]).h[n':]^(b[:n']).u^cR
 		R, _ = VectorExp(g[:nprime], a[nprime:])
 		Rh, _ = VectorExp(h[nprime:], b[:nprime])
 		R.Multiply(R, Rh)
-		R.Multiply(R, new(p256).ScalarMult(u, cR))
+		R.Multiply(R, new(p256.P256).ScalarMult(u, cR))
 
 		// Fiat-Shamir:
 		x, _, _ = HashBP(L, R)
-		xinv = ModInverse(x, ORDER)
+		xinv = bn.ModInverse(x, ORDER)
 
 		// Compute g' = g[:n']^(x^-1) * g[n':]^(x)
 		gprime, _ = VectorScalarExp(g[:nprime], xinv)
@@ -1274,11 +1276,11 @@ func BIP(a, b []*big.Int, g, h []*p256, u, P *p256, n int64, Ls, Rs []*p256) (pr
 		hprime, _ = VectorECAdd(hprime, hprime2)
 
 		// Compute P' = L^(x^2).P.R^(x^-2)
-		x2 = Mod(Multiply(x, x), ORDER)
-		x2inv = ModInverse(x2, ORDER)
-		Pprime = new(p256).ScalarMult(L, x2)
+		x2 = bn.Mod(bn.Multiply(x, x), ORDER)
+		x2inv = bn.ModInverse(x2, ORDER)
+		Pprime = new(p256.P256).ScalarMult(L, x2)
 		Pprime.Multiply(Pprime, P)
-		Pprime.Multiply(Pprime, new(p256).ScalarMult(R, x2inv))
+		Pprime.Multiply(Pprime, new(p256.P256).ScalarMult(R, x2inv))
 
 		// Compute a' = a[:n'].x      + a[n':].x^(-1)
 		aprime, _ = VectorScalarMul(a[:nprime], x)
@@ -1307,7 +1309,7 @@ func (zkip *bip) Verify(proof proofBip) (bool, error) {
 	var (
 		i                                    int64
 		x, xinv, x2, x2inv                   *big.Int
-		ngprime, nhprime, ngprime2, nhprime2 []*p256
+		ngprime, nhprime, ngprime2, nhprime2 []*p256.P256
 	)
 
 	i = 0
@@ -1318,7 +1320,7 @@ func (zkip *bip) Verify(proof proofBip) (bool, error) {
 	for i < int64(logn) {
 		nprime = nprime / 2
 		x, _, _ = HashBP(proof.Ls[i], proof.Rs[i])
-		xinv = ModInverse(x, ORDER)
+		xinv = bn.ModInverse(x, ORDER)
 		// Compute g' = g[:n']^(x^-1) * g[n':]^(x)
 		ngprime, _ = VectorScalarExp(gprime[:nprime], xinv)
 		ngprime2, _ = VectorScalarExp(gprime[nprime:], x)
@@ -1328,21 +1330,21 @@ func (zkip *bip) Verify(proof proofBip) (bool, error) {
 		nhprime2, _ = VectorScalarExp(hprime[nprime:], xinv)
 		hprime, _ = VectorECAdd(nhprime, nhprime2)
 		// Compute P' = L^(x^2).P.R^(x^-2)
-		x2 = Mod(Multiply(x, x), ORDER)
-		x2inv = ModInverse(x2, ORDER)
-		Pprime.Multiply(Pprime, new(p256).ScalarMult(proof.Ls[i], x2))
-		Pprime.Multiply(Pprime, new(p256).ScalarMult(proof.Rs[i], x2inv))
+		x2 = bn.Mod(bn.Multiply(x, x), ORDER)
+		x2inv = bn.ModInverse(x2, ORDER)
+		Pprime.Multiply(Pprime, new(p256.P256).ScalarMult(proof.Ls[i], x2))
+		Pprime.Multiply(Pprime, new(p256.P256).ScalarMult(proof.Rs[i], x2inv))
 		i = i + 1
 	}
 
 	// c == a*b
-	ab := Multiply(proof.A, proof.B)
-	ab = Mod(ab, ORDER)
+	ab := bn.Multiply(proof.A, proof.B)
+	ab = bn.Mod(ab, ORDER)
 
-	rhs := new(p256).ScalarMult(gprime[0], proof.A)
-	hb := new(p256).ScalarMult(hprime[0], proof.B)
+	rhs := new(p256.P256).ScalarMult(gprime[0], proof.A)
+	hb := new(p256.P256).ScalarMult(hprime[0], proof.B)
 	rhs.Multiply(rhs, hb)
-	rhs.Multiply(rhs, new(p256).ScalarMult(proof.U, ab))
+	rhs.Multiply(rhs, new(p256.P256).ScalarMult(proof.U, ab))
 
 	nP := Pprime.Neg(Pprime)
 	nP.Multiply(nP, rhs)

@@ -27,6 +27,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"github.com/ing-bank/zkpsdk/crypto/bn256"
+	"github.com/ing-bank/zkpsdk/util/bn"
 	"math/big"
 )
 
@@ -63,7 +64,7 @@ func sign(m *big.Int, privk *big.Int) (*bn256.G2, error) {
 		res       bool
 		signature *bn256.G2
 	)
-	inv := ModInverse(Mod(Add(m, privk), bn256.Order), bn256.Order)
+	inv := bn.ModInverse(bn.Mod(bn.Add(m, privk), bn256.Order), bn256.Order)
 	signature, res = new(bn256.G2).Unmarshal(new(bn256.G2).ScalarBaseMult(inv).Marshal())
 	if res != false {
 		return signature, nil

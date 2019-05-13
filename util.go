@@ -19,6 +19,8 @@ package zkpsdk
 import (
 	"crypto/sha256"
 	"github.com/ing-bank/zkpsdk/crypto/bn256"
+	"github.com/ing-bank/zkpsdk/crypto/p256"
+	"github.com/ing-bank/zkpsdk/util/bn"
 	"github.com/ing-bank/zkpsdk/util/byteconversion"
 	"math/big"
 )
@@ -42,7 +44,7 @@ func Decompose(x *big.Int, u int64, l int64) ([]int64, error) {
 	result = make([]int64, l, l)
 	i = 0
 	for i < l {
-		result[i] = Mod(x, new(big.Int).SetInt64(u)).Int64()
+		result[i] = bn.Mod(x, new(big.Int).SetInt64(u)).Int64()
 		x = new(big.Int).Div(x, new(big.Int).SetInt64(u))
 		i = i + 1
 	}
@@ -66,12 +68,12 @@ func Commit(x, r *big.Int, h *bn256.G2) (*bn256.G2, error) {
 CommitG1 method corresponds to the Pedersen commitment scheme. Namely, given input
 message x, and randomness r, it outputs g^x.h^r.
 */
-func CommitG1(x, r *big.Int, h *p256) (*p256, error) {
+func CommitG1(x, r *big.Int, h *p256.P256) (*p256.P256, error) {
 	var (
-		C *p256
+		C *p256.P256
 	)
-	C = new(p256).ScalarBaseMult(x)
-	Hr := new(p256).ScalarMult(h, r)
+	C = new(p256.P256).ScalarBaseMult(x)
+	Hr := new(p256.P256).ScalarMult(h, r)
 	C.Add(C, Hr)
 	return C, nil
 }

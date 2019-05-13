@@ -1,14 +1,15 @@
 /*
-Encapsulates secp256k1 elliptic curve.
+Encapsulates secP256k1 elliptic curve.
 */
 
-package zkpsdk
+package p256
 
 import (
 	"bytes"
 	"crypto/sha256"
 	"errors"
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
+	"github.com/ing-bank/zkpsdk/util/bn"
 	"github.com/ing-bank/zkpsdk/util/byteconversion"
 	"math/big"
 	"strconv"
@@ -23,14 +24,14 @@ var (
 /*
 Elliptic Curve Point struct.
 */
-type p256 struct {
+type P256 struct {
 	X, Y *big.Int
 }
 
 /*
 IsZero returns true if and only if the elliptic curve point is the point at infinity.
 */
-func (p *p256) IsZero() bool {
+func (p *P256) IsZero() bool {
 	c1 := (p.X == nil || p.Y == nil)
 	if !c1 {
 		z := new(big.Int).SetInt64(0)
@@ -42,7 +43,7 @@ func (p *p256) IsZero() bool {
 /*
 Neg returns the inverse of the given elliptic curve point.
 */
-func (p *p256) Neg(a *p256) *p256 {
+func (p *P256) Neg(a *P256) *P256 {
 	// (X, Y) -> (X, X + Y)
 	if a.IsZero() {
 		return p.SetInfinity()
@@ -56,7 +57,7 @@ func (p *p256) Neg(a *p256) *p256 {
 /*
 Input points must be distinct
 */
-func (p *p256) Add(a, b *p256) *p256 {
+func (p *P256) Add(a, b *P256) *P256 {
 	if a.IsZero() {
 		p.X = b.X
 		p.Y = b.Y
@@ -76,7 +77,7 @@ func (p *p256) Add(a, b *p256) *p256 {
 /*
 Double returns 2*P, where P is the given elliptic curve point.
 */
-func (p *p256) Double(a *p256) *p256 {
+func (p *P256) Double(a *P256) *P256 {
 	if a.IsZero() {
 		return p.SetInfinity()
 	}
@@ -87,9 +88,9 @@ func (p *p256) Double(a *p256) *p256 {
 }
 
 /*
-ScalarMul encapsulates the scalar Multiplication Algorithm from secp256k1.
+ScalarMul encapsulates the scalar Multiplication Algorithm from secP256k1.
 */
-func (p *p256) ScalarMult(a *p256, n *big.Int) *p256 {
+func (p *P256) ScalarMult(a *P256, n *big.Int) *P256 {
 	if a.IsZero() {
 		return p.SetInfinity()
 	}
@@ -97,7 +98,7 @@ func (p *p256) ScalarMult(a *p256, n *big.Int) *p256 {
 	if cmp == 0 {
 		return p.SetInfinity()
 	}
-	n = Mod(n, CURVE.N)
+	n = bn.Mod(n, CURVE.N)
 	bn := n.Bytes()
 	resx, resy := CURVE.ScalarMult(a.X, a.Y, bn)
 	p.X = resx
@@ -108,12 +109,12 @@ func (p *p256) ScalarMult(a *p256, n *big.Int) *p256 {
 /*
 ScalarBaseMult returns the Scalar Multiplication by the base generator.
 */
-func (p *p256) ScalarBaseMult(n *big.Int) *p256 {
+func (p *P256) ScalarBaseMult(n *big.Int) *P256 {
 	cmp := n.Cmp(big.NewInt(0))
 	if cmp == 0 {
 		return p.SetInfinity()
 	}
-	n = Mod(n, CURVE.N)
+	n = bn.Mod(n, CURVE.N)
 	bn := n.Bytes()
 	resx, resy := CURVE.ScalarBaseMult(bn)
 	p.X = resx
@@ -127,7 +128,7 @@ The name here is to maintain compatibility with bn256 interface.
 This algorithm verifies if the given elliptic curve points are equal, in which case it
 returns the result of Double function, otherwise it returns the result of Add function.
 */
-func (p *p256) Multiply(a, b *p256) *p256 {
+func (p *P256) Multiply(a, b *P256) *P256 {
 	if a.IsZero() {
 		p.X = b.X
 		p.Y = b.Y
@@ -152,7 +153,7 @@ func (p *p256) Multiply(a, b *p256) *p256 {
 /*
 SetInfinity sets the given elliptic curve point to the point at infinity.
 */
-func (p *p256) SetInfinity() *p256 {
+func (p *P256) SetInfinity() *P256 {
 	p.X = nil
 	p.Y = nil
 	return p
@@ -162,8 +163,8 @@ func (p *p256) SetInfinity() *p256 {
 String returns the readable representation of the given elliptic curve point, i.e.
 the tuple formed by X and Y coordinates.
 */
-func (p *p256) String() string {
-	return "p256(" + p.X.String() + "," + p.Y.String() + ")"
+func (p *P256) String() string {
+	return "P256(" + p.X.String() + "," + p.Y.String() + ")"
 }
 
 /*
@@ -176,7 +177,7 @@ Short signatures from the Weil pairing
 Boneh, Lynn and Shacham
 Journal of Cryptology, September 2004, Volume 17, Issue 4, pp 297–319
 */
-func MapToGroup(m string) (*p256, error) {
+func MapToGroup(m string) (*P256, error) {
 	var (
 		i      int
 		buffer bytes.Buffer
@@ -187,12 +188,12 @@ func MapToGroup(m string) (*p256, error) {
 		buffer.WriteString(strconv.Itoa(i))
 		buffer.WriteString(m)
 		x, _ := HashToInt(buffer)
-		x = Mod(x, CURVE.P)
+		x = bn.Mod(x, CURVE.P)
 		fx, _ := F(x)
-		fx = Mod(fx, CURVE.P)
+		fx = bn.Mod(fx, CURVE.P)
 		y := fx.ModSqrt(fx, CURVE.P)
 		if y != nil {
-			p := &p256{X: x, Y: y}
+			p := &P256{X: x, Y: y}
 			if p.IsOnCurve() && !p.IsZero() {
 				return p, nil
 			}
@@ -207,14 +208,14 @@ F receives a big integer x as input and return x^3 + 7 mod ORDER.
 */
 func F(x *big.Int) (*big.Int, error) {
 	// Compute x^2
-	x3p7 := Multiply(x, x)
-	x3p7 = Mod(x3p7, CURVE.P)
+	x3p7 := bn.Multiply(x, x)
+	x3p7 = bn.Mod(x3p7, CURVE.P)
 	// Compute x^3
-	x3p7 = Multiply(x3p7, x)
-	x3p7 = Mod(x3p7, CURVE.P)
+	x3p7 = bn.Multiply(x3p7, x)
+	x3p7 = bn.Mod(x3p7, CURVE.P)
 	// Compute X^3 + 7
-	x3p7 = Add(x3p7, new(big.Int).SetInt64(7))
-	x3p7 = Mod(x3p7, CURVE.P)
+	x3p7 = bn.Add(x3p7, new(big.Int).SetInt64(7))
+	x3p7 = bn.Mod(x3p7, CURVE.P)
 	return x3p7, nil
 }
 
@@ -233,7 +234,7 @@ func HashToInt(b bytes.Buffer) (*big.Int, error) {
 IsOnCurve returns TRUE if and only if p has coordinates X and Y that satisfy the
 Elliptic Curve equation: y^2 = x^3 + 7.
 */
-func (p *p256) IsOnCurve() bool {
+func (p *P256) IsOnCurve() bool {
 	// y² = x³ + 7
 	y2 := new(big.Int).Mul(p.Y, p.Y)
 	y2.Mod(y2, CURVE.P)

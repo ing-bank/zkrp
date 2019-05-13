@@ -20,6 +20,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"github.com/ing-bank/zkpsdk/crypto/bn256"
+	"github.com/ing-bank/zkpsdk/util/bn"
 	"math/big"
 	"testing"
 	"time"
@@ -42,7 +43,7 @@ Tests Inversion on G1 group.
 func TestNegScalarBaseMulG1(t *testing.T) {
 	b, _ := rand.Int(rand.Reader, bn256.Order)
 	pb := new(bn256.G1).ScalarBaseMult(b)
-	mb := Sub(new(big.Int).SetInt64(0), b)
+	mb := bn.Sub(new(big.Int).SetInt64(0), b)
 	mpb := new(bn256.G1).ScalarBaseMult(mb)
 	a := new(bn256.G1).Add(pb, mpb)
 	aBytes := a.Marshal()
@@ -59,7 +60,7 @@ Tests Inversion on G2 group.
 func TestNegScalarBaseMulG2(t *testing.T) {
 	b, _ := rand.Int(rand.Reader, bn256.Order)
 	pb := new(bn256.G2).ScalarBaseMult(b)
-	mb := Sub(new(big.Int).SetInt64(0), b)
+	mb := bn.Sub(new(big.Int).SetInt64(0), b)
 	mpb := new(bn256.G2).ScalarBaseMult(mb)
 	a := new(bn256.G2).Add(pb, mpb)
 	if a.IsZero() != true {
