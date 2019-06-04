@@ -19,9 +19,9 @@ package ccs08
 import (
 	"crypto/rand"
 	"fmt"
-	"github.com/ing-bank/zkpsdk/crypto/bn256"
-	. "github.com/ing-bank/zkpsdk/util"
-	"github.com/ing-bank/zkpsdk/util/bn"
+	"github.com/alexeykoren/zkpsdk/crypto/bn256"
+	. "github.com/alexeykoren/zkpsdk/util"
+	"github.com/alexeykoren/zkpsdk/util/bn"
 	"math/big"
 	"testing"
 	"time"
@@ -48,10 +48,13 @@ func TestNegScalarBaseMulG1(t *testing.T) {
 	mpb := new(bn256.G1).ScalarBaseMult(mb)
 	a := new(bn256.G1).Add(pb, mpb)
 	aBytes := a.Marshal()
-	for i := 0; i < len(aBytes); i++ {
+	for i := 0; i < len(aBytes)-1; i++ {
 		if aBytes[i] != 0 {
 			t.Errorf("Assert failure: expected true, actual: %t", aBytes[i] == 0)
 		}
+	}
+	if aBytes[len(aBytes)-1] != 1 {
+		t.Errorf("Assert failure: expected true, actual: %t", aBytes[len(aBytes)-1] == 1)
 	}
 }
 

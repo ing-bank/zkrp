@@ -18,7 +18,7 @@ package bn
 
 import (
 	"crypto/sha256"
-	"github.com/ing-bank/zkpsdk/util/byteconversion"
+	"github.com/alexeykoren/zkpsdk/util/byteconversion"
 	"math/big"
 )
 

@@ -18,10 +18,10 @@ package util
 
 import (
 	"crypto/sha256"
-	"github.com/ing-bank/zkpsdk/crypto/bn256"
-	"github.com/ing-bank/zkpsdk/crypto/p256"
-	"github.com/ing-bank/zkpsdk/util/bn"
-	"github.com/ing-bank/zkpsdk/util/byteconversion"
+	"github.com/alexeykoren/zkpsdk/crypto/bn256"
+	"github.com/alexeykoren/zkpsdk/crypto/p256"
+	"github.com/alexeykoren/zkpsdk/util/bn"
+	"github.com/alexeykoren/zkpsdk/util/byteconversion"
 	"math/big"
 )
 

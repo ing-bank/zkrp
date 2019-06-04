@@ -26,8 +26,8 @@ Eurocrypt 2004
 import (
 	"crypto/rand"
 	"errors"
-	"github.com/ing-bank/zkpsdk/crypto/bn256"
-	"github.com/ing-bank/zkpsdk/util/bn"
+	"github.com/alexeykoren/zkpsdk/crypto/bn256"
+	"github.com/alexeykoren/zkpsdk/util/bn"
 	"math/big"
 )
 

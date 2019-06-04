@@ -8,9 +8,9 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"errors"
-	"github.com/ethereum/go-ethereum/crypto/secp256k1"
-	"github.com/ing-bank/zkpsdk/util/bn"
-	"github.com/ing-bank/zkpsdk/util/byteconversion"
+	"github.com/alexeykoren/zkpsdk/crypto/secp256k1"
+	"github.com/alexeykoren/zkpsdk/util/bn"
+	"github.com/alexeykoren/zkpsdk/util/byteconversion"
 	"math/big"
 	"strconv"
 )
