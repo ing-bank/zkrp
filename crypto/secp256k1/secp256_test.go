@@ -24,7 +24,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/ethereum/go-ethereum/crypto/randentropy"
+	"github.com/alexeykoren/zkpsdk/crypto/randentropy"
 	"bytes"
 	"encoding/hex"
 )
