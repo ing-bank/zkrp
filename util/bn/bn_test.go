@@ -17,7 +17,7 @@
 package bn
 
 import (
-	. "github.com/ing-bank/zkpsdk/util"
+	. "github.com/mvdbos/zkpsdk/util"
 	"math/big"
 	"testing"
 )
