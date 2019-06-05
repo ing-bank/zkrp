@@ -18,10 +18,10 @@ package util
 
 import (
 	"crypto/sha256"
-	"github.com/alexeykoren/zkpsdk/crypto/bn256"
-	"github.com/alexeykoren/zkpsdk/crypto/p256"
-	"github.com/alexeykoren/zkpsdk/util/bn"
-	"github.com/alexeykoren/zkpsdk/util/byteconversion"
+	"github.com/mvdbos/zkpsdk/crypto/bn256"
+	"github.com/mvdbos/zkpsdk/crypto/p256"
+	"github.com/mvdbos/zkpsdk/util/bn"
+	"github.com/mvdbos/zkpsdk/util/byteconversion"
 	"math/big"
 )
 

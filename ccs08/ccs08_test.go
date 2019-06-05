@@ -19,9 +19,9 @@ package ccs08
 import (
 	"crypto/rand"
 	"fmt"
-	"github.com/alexeykoren/zkpsdk/crypto/bn256"
-	. "github.com/alexeykoren/zkpsdk/util"
-	"github.com/alexeykoren/zkpsdk/util/bn"
+	"github.com/mvdbos/zkpsdk/crypto/bn256"
+	. "github.com/mvdbos/zkpsdk/util"
+	"github.com/mvdbos/zkpsdk/util/bn"
 	"math/big"
 	"testing"
 	"time"
