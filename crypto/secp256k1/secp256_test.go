@@ -17,16 +17,16 @@
 package secp256k1
 
 import (
-	"testing"
-	"fmt"
-	"time"
+	"bytes"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
-	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/alexeykoren/zkpsdk/crypto/randentropy"
-	"bytes"
 	"encoding/hex"
+	"fmt"
+	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/mvdbos/zkpsdk/crypto/randentropy"
+	"testing"
+	"time"
 )
 
 const TestCount = 1000
