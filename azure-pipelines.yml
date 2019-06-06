@@ -30,16 +30,12 @@ steps:
 - script: |
     go version
     go get -v -t -d ./...
-    if [ -f Gopkg.toml ]; then
-        curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-        dep ensure
-    fi
     go build -v .
   workingDirectory: '$(modulePath)'
   displayName: 'Get dependencies, then build'
 
 - script: |
     curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.16.0
-    golangci-lint run
+    golangci-lint run -v
   workingDirectory: '$(modulePath)'
   displayName: 'Get golangci-lint, then lint'
