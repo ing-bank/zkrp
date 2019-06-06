@@ -5,10 +5,10 @@ strategy:
   matrix:
     linux_go_1_11:
       imageName: ubuntu-16.04
-      goVersion: 1.11
+      goVersion: 1.11.9
     linux_go_1_12:
       imageName: ubuntu-16.04
-      goVersion: 1.12
+      goVersion: 1.12.4
     mac_go1_12:
       imageName: macOS-10.14
       goVersion: 1.12.5
@@ -18,11 +18,17 @@ pool:
 
 variables:
   GOBIN:  '$(GOPATH)/bin' # Go binaries path
-  GOROOT: '/usr/local/go$(goVersion)' # Go installation path
+  #GOROOT: '/usr/local/go$(goVersion)' # Go installation path
   GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
   modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)' # Path to the module's code
 
 steps:
+- task: GoTool@0
+  inputs:
+    version: $(goVersion)
+    goPath: $(GOPATH)
+    goBin: $(GOBIN)
+
 - script: |
     mkdir -p '$(GOBIN)'
     mkdir -p '$(GOPATH)/pkg'
@@ -43,6 +49,6 @@ steps:
 
 - script: |
     curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.16.0
-    golangci-lint run -v
+    golangci-lint run
   workingDirectory: '$(modulePath)'
   displayName: 'Get golangci-lint, then lint'
