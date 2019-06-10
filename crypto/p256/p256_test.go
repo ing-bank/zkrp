@@ -2,7 +2,7 @@ package p256
 
 import (
 	"crypto/rand"
-	"github.com/ethereum/go-ethereum/crypto/secp256k1"
+	"github.com/mvdbos/zkpsdk/crypto/secp256k1"
 	"math/big"
 	"testing"
 )
@@ -11,8 +11,7 @@ const TestCount = 1000
 
 func TestIsZero(t *testing.T) {
 	curve := secp256k1.S256()
-	a := make([]byte, 32)
-	a = curve.N.Bytes()
+	a := curve.N.Bytes()
 	Ax, Ay := curve.ScalarBaseMult(a)
 	p1 := P256{X: Ax, Y: Ay}
 	res := p1.IsZero()

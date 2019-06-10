@@ -17,8 +17,6 @@ import (
 
 var (
 	CURVE = secp256k1.S256()
-	GX    = CURVE.Gx
-	GY    = CURVE.Gy
 )
 
 /*
@@ -32,7 +30,7 @@ type P256 struct {
 IsZero returns true if and only if the elliptic curve point is the point at infinity.
 */
 func (p *P256) IsZero() bool {
-	c1 := (p.X == nil || p.Y == nil)
+	c1 := p.X == nil || p.Y == nil
 	if !c1 {
 		z := new(big.Int).SetInt64(0)
 		return p.X.Cmp(z) == 0 && p.Y.Cmp(z) == 0
@@ -99,8 +97,8 @@ func (p *P256) ScalarMult(a *P256, n *big.Int) *P256 {
 		return p.SetInfinity()
 	}
 	n = bn.Mod(n, CURVE.N)
-	bn := n.Bytes()
-	resx, resy := CURVE.ScalarMult(a.X, a.Y, bn)
+	bns := n.Bytes()
+	resx, resy := CURVE.ScalarMult(a.X, a.Y, bns)
 	p.X = resx
 	p.Y = resy
 	return p
@@ -115,8 +113,8 @@ func (p *P256) ScalarBaseMult(n *big.Int) *P256 {
 		return p.SetInfinity()
 	}
 	n = bn.Mod(n, CURVE.N)
-	bn := n.Bytes()
-	resx, resy := CURVE.ScalarBaseMult(bn)
+	bns := n.Bytes()
+	resx, resy := CURVE.ScalarBaseMult(bns)
 	p.X = resx
 	p.Y = resy
 	return p
@@ -226,7 +224,7 @@ func HashToInt(b bytes.Buffer) (*big.Int, error) {
 	digest := sha256.New()
 	digest.Write(b.Bytes())
 	output := digest.Sum(nil)
-	tmp := output[0:len(output)]
+	tmp := output[0:]
 	return byteconversion.FromByteArray(tmp)
 }
 

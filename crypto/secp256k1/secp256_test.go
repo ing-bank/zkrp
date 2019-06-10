@@ -22,11 +22,9 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/hex"
-	"fmt"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/mvdbos/zkpsdk/crypto/randentropy"
 	"testing"
-	"time"
 )
 
 const TestCount = 1000
@@ -218,28 +216,28 @@ func TestRecoverSanity(t *testing.T) {
 	}
 }
 
-func TestRangeproof(t *testing.T) {
-	RunRangeproof()
-	startTime := time.Now()
-	dt := SetupRangeproof(32)
-	setupTime := time.Now()
-	fmt.Println("Setup time:")
-	fmt.Println(setupTime.Sub(startTime))
-	CommitRangeproof(dt)
-	commitTime := time.Now()
-	fmt.Println("Commit time:")
-	fmt.Println(commitTime.Sub(setupTime))
-	ProveRangeproof(dt)
-	proveTime := time.Now()
-	fmt.Println("Prove time:")
-	fmt.Println(proveTime.Sub(commitTime))
-	result := VerifyRangeproof(dt)
-	verifyTime := time.Now()
-	fmt.Println("Verify time:")
-	fmt.Println(verifyTime.Sub(proveTime))
-	fmt.Println("result:")
-	fmt.Println(result)
-}
+//func TestRangeproof(t *testing.T) {
+//	RunRangeproof()
+//	startTime := time.Now()
+//	dt := SetupRangeproof(32)
+//	setupTime := time.Now()
+//	fmt.Println("Setup time:")
+//	fmt.Println(setupTime.Sub(startTime))
+//	CommitRangeproof(dt)
+//	commitTime := time.Now()
+//	fmt.Println("Commit time:")
+//	fmt.Println(commitTime.Sub(setupTime))
+//	ProveRangeproof(dt)
+//	proveTime := time.Now()
+//	fmt.Println("Prove time:")
+//	fmt.Println(proveTime.Sub(commitTime))
+//	result := VerifyRangeproof(dt)
+//	verifyTime := time.Now()
+//	fmt.Println("Verify time:")
+//	fmt.Println(verifyTime.Sub(proveTime))
+//	fmt.Println("result:")
+//	fmt.Println(result)
+//}
 
 func BenchmarkSign(b *testing.B) {
 	_, seckey := generateKeyPair()

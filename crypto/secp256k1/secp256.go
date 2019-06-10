@@ -143,30 +143,29 @@ func checkSignature(sig []byte) error {
 // Rangeproofs functions: should be separated from this file in the near future
 ////////////////////////////////////////////////////////////////////////////////////
 
-/*func RunRangeproof() {
-	C.test_rangeproof()
-}
-
-func SetupRangeproof(nbits _Ctype_ulong) (*C.zkrp_t) {
-	var dt *C.zkrp_t
-	dt = new(C.zkrp_t)
-	dt.nbits = nbits
-	C.setup_rangeproof(dt)
-	return dt
-}
-
-func PrintRangeproof(dt *C.zkrp_t) {
-	C.myprint(C.CString("GO print"), dt)
-}
-
-func CommitRangeproof(dt *C.zkrp_t) {
-	C.commit_rangeproof(dt)
-}
-
-func ProveRangeproof(dt *C.zkrp_t) {
-	C.prove_rangeproof(dt)
-}
-
-func VerifyRangeproof(dt *C.zkrp_t) (bool) {
-	return (C.verify_rangeproof(dt) == 1)
-}*/
+//func RunRangeproof() {
+//	C.test_rangeproof()
+//}
+//
+//func SetupRangeproof(nbits C.ulong) (*C.zkrp_t) {
+//	var dt = new(C.zkrp_t)
+//	dt.nbits = nbits
+//	C.setup_rangeproof(dt)
+//	return dt
+//}
+//
+//func PrintRangeproof(dt *C.zkrp_t) {
+//	C.myprint(C.CString("GO print"), dt)
+//}
+//
+//func CommitRangeproof(dt *C.zkrp_t) {
+//	C.commit_rangeproof(dt)
+//}
+//
+//func ProveRangeproof(dt *C.zkrp_t) {
+//	C.prove_rangeproof(dt)
+//}
+//
+//func VerifyRangeproof(dt *C.zkrp_t) (bool) {
+//	return (C.verify_rangeproof(dt) == 1)
+//}

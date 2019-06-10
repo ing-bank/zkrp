@@ -22,6 +22,7 @@ import (
 	"github.com/mvdbos/zkpsdk/crypto/bn256"
 	. "github.com/mvdbos/zkpsdk/util"
 	"github.com/mvdbos/zkpsdk/util/bn"
+	"github.com/mvdbos/zkpsdk/util/intconversion"
 	"math/big"
 	"testing"
 	"time"
@@ -31,7 +32,7 @@ import (
 Tests decomposion into bits.
 */
 func TestDecompose(t *testing.T) {
-	h := GetBigInt("925")
+	h := intconversion.BigFromBase10("925")
 	decx, _ := Decompose(h, 10, 3)
 	if decx[0] != 5 || decx[1] != 2 || decx[2] != 9 {
 		t.Errorf("Assert failure: expected true, actual: %d", decx)

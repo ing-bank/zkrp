@@ -21,8 +21,8 @@ import (
 	"fmt"
 	"github.com/mvdbos/zkpsdk/crypto/bn256"
 	"github.com/mvdbos/zkpsdk/crypto/p256"
-	. "github.com/mvdbos/zkpsdk/util"
 	"github.com/mvdbos/zkpsdk/util/bn"
+	"github.com/mvdbos/zkpsdk/util/intconversion"
 	"math/big"
 	"testing"
 	"time"
@@ -37,8 +37,8 @@ func TestVectorCopy(t *testing.T) {
 	)
 	result, _ = VectorCopy(new(big.Int).SetInt64(1), 3)
 	ok := (result[0].Cmp(new(big.Int).SetInt64(1)) == 0)
-	ok = ok && (result[1].Cmp(GetBigInt("1")) == 0)
-	ok = ok && (result[2].Cmp(GetBigInt("1")) == 0)
+	ok = ok && (result[1].Cmp(intconversion.BigFromBase10("1")) == 0)
+	ok = ok && (result[2].Cmp(intconversion.BigFromBase10("1")) == 0)
 	if ok != true {
 		t.Errorf("Assert failure: expected true, actual: %t", ok)
 	}
@@ -58,8 +58,8 @@ func TestVectorConvertToBig(t *testing.T) {
 	a[2] = 5
 	result, _ = VectorConvertToBig(a, 3)
 	ok := (result[0].Cmp(new(big.Int).SetInt64(3)) == 0)
-	ok = ok && (result[1].Cmp(GetBigInt("4")) == 0)
-	ok = ok && (result[2].Cmp(GetBigInt("5")) == 0)
+	ok = ok && (result[1].Cmp(intconversion.BigFromBase10("4")) == 0)
+	ok = ok && (result[2].Cmp(intconversion.BigFromBase10("5")) == 0)
 	if ok != true {
 		t.Errorf("Assert failure: expected true, actual: %t", ok)
 	}
@@ -104,8 +104,8 @@ func TestVectorAdd(t *testing.T) {
 	b[2] = new(big.Int).SetInt64(40)
 	result, _ := VectorAdd(a, b)
 	ok := (result[0].Cmp(new(big.Int).SetInt64(10)) == 0)
-	ok = ok && (result[1].Cmp(GetBigInt("38")) == 0)
-	ok = ok && (result[2].Cmp(GetBigInt("49")) == 0)
+	ok = ok && (result[1].Cmp(intconversion.BigFromBase10("38")) == 0)
+	ok = ok && (result[2].Cmp(intconversion.BigFromBase10("49")) == 0)
 	if ok != true {
 		t.Errorf("Assert failure: expected true, actual: %t", ok)
 	}
@@ -128,8 +128,8 @@ func TestVectorSub(t *testing.T) {
 	b[2] = new(big.Int).SetInt64(40)
 	result, _ := VectorSub(a, b)
 	ok := (result[0].Cmp(new(big.Int).SetInt64(4)) == 0)
-	ok = ok && (result[1].Cmp(GetBigInt("115792089237316195423570985008687907852837564279074904382605163141518161494315")) == 0)
-	ok = ok && (result[2].Cmp(GetBigInt("115792089237316195423570985008687907852837564279074904382605163141518161494306")) == 0)
+	ok = ok && (result[1].Cmp(intconversion.BigFromBase10("115792089237316195423570985008687907852837564279074904382605163141518161494315")) == 0)
+	ok = ok && (result[2].Cmp(intconversion.BigFromBase10("115792089237316195423570985008687907852837564279074904382605163141518161494306")) == 0)
 	if ok != true {
 		t.Errorf("Assert failure: expected true, actual: %t", ok)
 	}

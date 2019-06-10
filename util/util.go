@@ -41,7 +41,7 @@ func Decompose(x *big.Int, u int64, l int64) ([]int64, error) {
 		result []int64
 		i      int64
 	)
-	result = make([]int64, l, l)
+	result = make([]int64, l)
 	i = 0
 	for i < l {
 		result[i] = bn.Mod(x, new(big.Int).SetInt64(u)).Int64()
@@ -56,10 +56,7 @@ Commit method corresponds to the Pedersen commitment scheme. Namely, given input
 message x, and randomness r, it outputs g^x.h^r.
 */
 func Commit(x, r *big.Int, h *bn256.G2) (*bn256.G2, error) {
-	var (
-		C *bn256.G2
-	)
-	C = new(bn256.G2).ScalarBaseMult(x)
+	var C = new(bn256.G2).ScalarBaseMult(x)
 	C.Add(C, new(bn256.G2).ScalarMult(h, r))
 	return C, nil
 }
@@ -69,10 +66,7 @@ CommitG1 method corresponds to the Pedersen commitment scheme. Namely, given inp
 message x, and randomness r, it outputs g^x.h^r.
 */
 func CommitG1(x, r *big.Int, h *p256.P256) (*p256.P256, error) {
-	var (
-		C *p256.P256
-	)
-	C = new(p256.P256).ScalarBaseMult(x)
+	var C = new(p256.P256).ScalarBaseMult(x)
 	Hr := new(p256.P256).ScalarMult(h, r)
 	C.Add(C, Hr)
 	return C, nil
@@ -86,7 +80,7 @@ func HashSet(a *bn256.GT, D *bn256.G2) (*big.Int, error) {
 	digest.Write([]byte(a.String()))
 	digest.Write([]byte(D.String()))
 	output := digest.Sum(nil)
-	tmp := output[0:len(output)]
+	tmp := output[0:]
 	return byteconversion.FromByteArray(tmp)
 }
 
@@ -100,15 +94,6 @@ func Hash(a []*bn256.GT, D *bn256.G2) (*big.Int, error) {
 	}
 	digest.Write([]byte(D.String()))
 	output := digest.Sum(nil)
-	tmp := output[0:len(output)]
+	tmp := output[0:]
 	return byteconversion.FromByteArray(tmp)
-}
-
-/*
-Read big integer in base 10 from string.
-*/
-func GetBigInt(value string) *big.Int {
-	i := new(big.Int)
-	i.SetString(value, 10)
-	return i
 }

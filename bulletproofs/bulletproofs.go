@@ -33,6 +33,7 @@ import (
 	. "github.com/mvdbos/zkpsdk/util"
 	"github.com/mvdbos/zkpsdk/util/bn"
 	"github.com/mvdbos/zkpsdk/util/byteconversion"
+	"github.com/mvdbos/zkpsdk/util/intconversion"
 	"io/ioutil"
 	"math"
 	"math/big"
@@ -42,7 +43,6 @@ var (
 	ORDER = p256.CURVE.N
 	SEEDH = "BulletproofsDoesNotNeedTrustedSetupH"
 	SEEDU = "BulletproofsDoesNotNeedTrustedSetupU"
-	SAVE  = true
 )
 
 /*
@@ -277,19 +277,19 @@ type (
 	}
 )
 
-func (s *bp) MarshalJSON() ([]byte, error) {
+func (zkrp *bp) MarshalJSON() ([]byte, error) {
 	type Alias bp
 	var iHh []pstring
 	var iGg []pstring
 
 	var i int
-	n := len(s.Gg)
+	n := len(zkrp.Gg)
 	iGg = make([]pstring, n)
 	iHh = make([]pstring, n)
 	i = 0
 	for i < n {
-		iGg[i] = pstring{X: s.Zkip.Gg[i].X.String(), Y: s.Zkip.Gg[i].Y.String()}
-		iHh[i] = pstring{X: s.Zkip.Hh[i].X.String(), Y: s.Zkip.Hh[i].Y.String()}
+		iGg[i] = pstring{X: zkrp.Zkip.Gg[i].X.String(), Y: zkrp.Zkip.Gg[i].Y.String()}
+		iHh[i] = pstring{X: zkrp.Zkip.Hh[i].X.String(), Y: zkrp.Zkip.Hh[i].Y.String()}
 		i = i + 1
 	}
 	return json.Marshal(&struct {
@@ -297,25 +297,25 @@ func (s *bp) MarshalJSON() ([]byte, error) {
 		*Alias
 	}{
 		Zkip: ipgenstring{
-			N:  s.N,
-			Cc: s.Zkip.Cc.String(),
-			Uu: pstring{X: s.Zkip.Uu.X.String(), Y: s.Zkip.Uu.Y.String()},
-			H:  pstring{X: s.Zkip.H.X.String(), Y: s.Zkip.H.Y.String()},
+			N:  zkrp.N,
+			Cc: zkrp.Zkip.Cc.String(),
+			Uu: pstring{X: zkrp.Zkip.Uu.X.String(), Y: zkrp.Zkip.Uu.Y.String()},
+			H:  pstring{X: zkrp.Zkip.H.X.String(), Y: zkrp.Zkip.H.Y.String()},
 			Gg: iGg,
 			Hh: iHh,
-			P:  pstring{X: s.Zkip.P.X.String(), Y: s.Zkip.P.Y.String()},
+			P:  pstring{X: zkrp.Zkip.P.X.String(), Y: zkrp.Zkip.P.Y.String()},
 		},
-		Alias: (*Alias)(s),
+		Alias: (*Alias)(zkrp),
 	})
 }
 
-func (s *bp) UnmarshalJSON(data []byte) error {
+func (zkrp *bp) UnmarshalJSON(data []byte) error {
 	type Alias bp
 	aux := &struct {
 		Zkip ipgenstring `json:"Zkip"`
 		*Alias
 	}{
-		Alias: (*Alias)(s),
+		Alias: (*Alias)(zkrp),
 	}
 	if err := json.Unmarshal(data, &aux); err != nil {
 		return err
@@ -360,7 +360,7 @@ func (s *bp) UnmarshalJSON(data []byte) error {
 		X: valPx,
 		Y: valPy,
 	}
-	s.Zkip = bip{
+	zkrp.Zkip = bip{
 		N:  valN,
 		Cc: valCc,
 		Uu: valUu,
@@ -547,7 +547,7 @@ func ScalarProduct(a, b []*big.Int) (*big.Int, error) {
 		return nil, errors.New("Size of first argument is different from size of second argument.")
 	}
 	i = 0
-	result = GetBigInt("0")
+	result = intconversion.BigFromBase10("0")
 	for i < n {
 		ab := bn.Multiply(a[i], b[i])
 		result.Add(result, ab)
@@ -606,7 +606,7 @@ func PowerOf(x *big.Int, n int64) ([]*big.Int, error) {
 		result []*big.Int
 	)
 	result = make([]*big.Int, n)
-	current := GetBigInt("1")
+	current := intconversion.BigFromBase10("1")
 	i = 0
 	for i < n {
 		result[i] = current
@@ -651,9 +651,9 @@ func HashBP(A, S *p256.P256) (*big.Int, *big.Int, error) {
 	buffer.WriteString(A.Y.String())
 	buffer.WriteString(S.X.String())
 	buffer.WriteString(S.Y.String())
-	digest1.Write([]byte(buffer.String()))
+	digest1.Write(buffer.Bytes())
 	output1 := digest1.Sum(nil)
-	tmp1 := output1[0:len(output1)]
+	tmp1 := output1[0:]
 	result1 := new(big.Int).SetBytes(tmp1)
 
 	digest2 := sha256.New()
@@ -663,9 +663,9 @@ func HashBP(A, S *p256.P256) (*big.Int, *big.Int, error) {
 	buffer2.WriteString(S.X.String())
 	buffer2.WriteString(S.Y.String())
 	buffer2.WriteString(result1.String())
-	digest2.Write([]byte(buffer2.String()))
+	digest2.Write(buffer.Bytes())
 	output2 := digest2.Sum(nil)
-	tmp2 := output2[0:len(output2)]
+	tmp2 := output2[0:]
 	result2 := new(big.Int).SetBytes(tmp2)
 
 	return result1, result2, nil
@@ -741,7 +741,10 @@ func LoadParamFromDisk(s string) (*bp, error) {
 		return nil, err
 	}
 	if len(c) > 0 {
-		json.Unmarshal(c, &result)
+		err := json.Unmarshal(c, &result)
+		if err != nil {
+			return nil, err
+		}
 		return &result, nil
 	}
 	return nil, errors.New("Could not load generators.")
@@ -757,7 +760,10 @@ func LoadProofFromDisk(s string) (*proofBP, error) {
 		return nil, err
 	}
 	if len(c) > 0 {
-		json.Unmarshal(c, &result)
+		err := json.Unmarshal(c, &result)
+		if err != nil {
+			return nil, err
+		}
 		return &result, nil
 	}
 	return nil, errors.New("Could not load proof.")
@@ -798,17 +804,21 @@ func (zkrp *bp) Delta(y, z *big.Int) (*big.Int, error) {
 /*
 SetupPre is responsible for computing the common parameters.
 */
-func (zkrp *bp) SetupPre(a, b int64) {
+func (zkrp *bp) SetupPre(a, b int64) error {
 	res, _ := LoadParamFromDisk("setup.dat")
 	zkrp = res
 	// Setup Inner Product
-	zkrp.Zkip.Setup(zkrp.H, zkrp.Gg, zkrp.Hh, new(big.Int).SetInt64(0))
+	_, setupErr := zkrp.Zkip.Setup(zkrp.H, zkrp.Gg, zkrp.Hh, new(big.Int).SetInt64(0))
+	if setupErr != nil {
+		return setupErr
+	}
+	return nil
 }
 
 /*
 Setup is responsible for computing the common parameters.
 */
-func (zkrp *bp) Setup(a, b int64) {
+func (zkrp *bp) Setup(a, b int64) error {
 	var (
 		i int64
 	)
@@ -824,11 +834,14 @@ func (zkrp *bp) Setup(a, b int64) {
 		zkrp.Hh[i], _ = p256.MapToGroup(SEEDH + "h" + string(i))
 		i = i + 1
 	}
-	//zkrp.SaveToDisk("setup.dat", nil)
 
 	// Setup Inner Product
-	zkrp.Zkip.Setup(zkrp.H, zkrp.Gg, zkrp.Hh, new(big.Int).SetInt64(0))
-	zkrp.SaveToDisk("setup.dat", nil)
+	_, setupErr := zkrp.Zkip.Setup(zkrp.H, zkrp.Gg, zkrp.Hh, new(big.Int).SetInt64(0))
+	if setupErr != nil {
+		return setupErr
+	}
+
+	return zkrp.SaveToDisk("setup.dat", nil)
 }
 
 /*
@@ -982,7 +995,10 @@ func (zkrp *bp) Prove(secret *big.Int) (proofBP, error) {
 	proof.Proofip = proofip
 	proof.Commit = commit
 
-	zkrp.SaveToDisk("setup.dat", &proof)
+	saveErr := zkrp.SaveToDisk("setup.dat", &proof)
+	if saveErr != nil {
+		return proof, saveErr
+	}
 	return proof, nil
 }
 
@@ -1144,7 +1160,7 @@ func HashIP(g, h []*p256.P256, P *p256.P256, c *big.Int, n int64) (*big.Int, err
 
 	digest.Write([]byte(c.String()))
 	output := digest.Sum(nil)
-	tmp := output[0:len(output)]
+	tmp := output[0:]
 	result, err := byteconversion.FromByteArray(tmp)
 
 	return result, err
@@ -1198,24 +1214,23 @@ func (zkip *bip) Prove(a, b []*big.Int, P *p256.P256) (proofBip, error) {
 
 	n = int64(len(a))
 	m = int64(len(b))
+
 	if n != m {
 		return proof, errors.New("Size of first array argument must be equal to the second")
-	} else {
-		// Fiat-Shamir:
-		// x = Hash(g,h,P,c)
-		x, _ := HashIP(zkip.Gg, zkip.Hh, P, zkip.Cc, zkip.N)
-		// Pprime = P.u^(x.c)
-		ux := new(p256.P256).ScalarMult(zkip.Uu, x)
-		uxc := new(p256.P256).ScalarMult(ux, zkip.Cc)
-		PP := new(p256.P256).Multiply(P, uxc)
-		// Execute Protocol 2 recursively
-		zkip.P = PP
-		proof, err := BIP(a, b, zkip.Gg, zkip.Hh, ux, zkip.P, n, Ls, Rs)
-		proof.P = PP
-		return proof, err
 	}
 
-	return proof, nil
+	// Fiat-Shamir:
+	// x = Hash(g,h,P,c)
+	x, _ := HashIP(zkip.Gg, zkip.Hh, P, zkip.Cc, zkip.N)
+	// Pprime = P.u^(x.c)
+	ux := new(p256.P256).ScalarMult(zkip.Uu, x)
+	uxc := new(p256.P256).ScalarMult(ux, zkip.Cc)
+	PP := new(p256.P256).Multiply(P, uxc)
+	// Execute Protocol 2 recursively
+	zkip.P = PP
+	proof, err := BIP(a, b, zkip.Gg, zkip.Hh, ux, zkip.P, n, Ls, Rs)
+	proof.P = PP
+	return proof, err
 }
 
 /*

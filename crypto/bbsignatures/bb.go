@@ -66,7 +66,7 @@ func Sign(m *big.Int, privk *big.Int) (*bn256.G2, error) {
 	)
 	inv := bn.ModInverse(bn.Mod(bn.Add(m, privk), bn256.Order), bn256.Order)
 	signature, res = new(bn256.G2).Unmarshal(new(bn256.G2).ScalarBaseMult(inv).Marshal())
-	if res != false {
+	if res {
 		return signature, nil
 	} else {
 		return nil, errors.New("Error while computing signature.")
@@ -97,7 +97,7 @@ func verify(signature *bn256.G2, m *big.Int, pubk *bn256.G1) (bool, error) {
 	p2 = p2.Neg(p2)
 	p1 = p1.Add(p1, p2)
 	res = p1.IsOne()
-	if e != false {
+	if e {
 		return res, nil
 	}
 	return false, errors.New("Error while computing signature.")
