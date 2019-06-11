@@ -1,20 +1,9 @@
 package bn256
 
 import (
-	"crypto/rand"
 	"github.com/mvdbos/zkpsdk/util/intconversion"
 	"testing"
 )
-
-func TestRandomG2Marshal(t *testing.T) {
-	for i := 0; i < 10; i++ {
-		n, g2, err := RandomG2(rand.Reader)
-		if err != nil {
-			t.Error(err)
-			continue
-		}
-	}
-}
 
 func TestPairings(t *testing.T) {
 	a1 := new(G1).ScalarBaseMult(intconversion.BigFromBase10("1"))
