@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"errors"
-	"github.com/mvdbos/zkpsdk/crypto/secp256k1"
 	"github.com/mvdbos/zkpsdk/util/bn"
 	"github.com/mvdbos/zkpsdk/util/byteconversion"
 	"math/big"
@@ -16,7 +15,7 @@ import (
 )
 
 var (
-	CURVE = secp256k1.S256()
+	CURVE = S256()
 )
 
 /*
