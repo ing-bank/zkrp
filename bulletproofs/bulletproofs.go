@@ -802,20 +802,6 @@ func (zkrp *bp) Delta(y, z *big.Int) (*big.Int, error) {
 }
 
 /*
-SetupPre is responsible for computing the common parameters.
-*/
-func (zkrp *bp) SetupPre(a, b int64) error {
-	res, _ := LoadParamFromDisk("setup.dat")
-	zkrp = res
-	// Setup Inner Product
-	_, setupErr := zkrp.Zkip.Setup(zkrp.H, zkrp.Gg, zkrp.Hh, new(big.Int).SetInt64(0))
-	if setupErr != nil {
-		return setupErr
-	}
-	return nil
-}
-
-/*
 Setup is responsible for computing the common parameters.
 */
 func (zkrp *bp) Setup(a, b int64) error {
