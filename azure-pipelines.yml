@@ -1,5 +1,5 @@
 trigger:
-- master
+  - master
 
 strategy:
   matrix:
@@ -22,37 +22,47 @@ variables:
   modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)' # Path to the module's code
 
 steps:
-- task: GoTool@0
-  inputs:
-    version: $(goVersion)
-    goPath: $(GOPATH)
-    goBin: $(GOBIN)
+  - task: GoTool@0
+    inputs:
+      version: $(goVersion)
+      goPath: $(GOPATH)
+      goBin: $(GOBIN)
 
-- script: |
-    mkdir -p '$(GOBIN)'
-    mkdir -p '$(GOPATH)/pkg'
-    mkdir -p '$(modulePath)'
-    shopt -s extglob
-    shopt -s dotglob
-    mv !(gopath) '$(modulePath)'
-    echo '##vso[task.prependpath]$(GOBIN)'
-    echo '##vso[task.prependpath]$(GOROOT)/bin'
-  displayName: 'Set up the Go workspace'
+  - script: |
+      mkdir -p '$(GOBIN)'
+      mkdir -p '$(GOPATH)/pkg'
+      mkdir -p '$(modulePath)'
+      shopt -s extglob
+      shopt -s dotglob
+      mv !(gopath) '$(modulePath)'
+      echo '##vso[task.prependpath]$(GOBIN)'
+      echo '##vso[task.prependpath]$(GOROOT)/bin'
+    displayName: 'Set up the Go workspace'
 
-- script: |
-    go version
-    go get -v -t -d ./...
-    go build -v .
-  workingDirectory: '$(modulePath)'
-  displayName: 'Get dependencies, then build'
+  - script: |
+      go version
+      go get -v -t -d ./...
+      go build -v .
+    workingDirectory: '$(modulePath)'
+    displayName: 'Get dependencies, then build'
 
-- script: |
-    curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.16.0
-    golangci-lint run
-  workingDirectory: '$(modulePath)'
-  displayName: 'Get golangci-lint, then lint'
+  - script: |
+      curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.17.1
+      golangci-lint run -v
+    workingDirectory: '$(modulePath)'
+    displayName: 'Get golangci-lint, then lint'
 
-- script: |
-    go test -v ./...
-  workingDirectory: '$(modulePath)'
-  displayName: 'Get dependencies, then build'
+  # errcheck can also be run as part of golangci-lint, but for some reason it then ignores the standard excludes
+  - script: |
+      mkdir -p $(go env GOPATH)/src/github.com/kisielk/errcheck
+      curl -sfL -o $(go env GOPATH)/src/github.com/kisielk/errcheck.tar.gz https://github.com/kisielk/errcheck/archive/v1.2.0.tar.gz
+      tar xzf $(go env GOPATH)/src/github.com/kisielk/errcheck.tar.gz --directory $(go env GOPATH)/src/github.com/kisielk/errcheck --strip-components=1
+      cd  $(go env GOPATH)/src/github.com/kisielk/errcheck && go get ./... &&  go install && cd -
+      errcheck -verbose -ignoretests ./...
+    workingDirectory: '$(modulePath)'
+    displayName: 'Get errcheck, then run'
+
+  - script: |
+      go test -v ./...
+    workingDirectory: '$(modulePath)'
+    displayName: 'Run tests'

@@ -23,9 +23,9 @@ Asiacrypt 2008
 
 package zkpsdk
 
-type izkrp interface {
-	//Commit()
-	Setup(a, b int64)
-	Prove()
-	Verify() (bool, error)
-}
+//type izkrp interface {
+//	//Commit()
+//	Setup(a, b int64)
+//	Prove()
+//	Verify() (bool, error)
+//}

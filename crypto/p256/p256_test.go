@@ -2,7 +2,6 @@ package p256
 
 import (
 	"crypto/rand"
-	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"math/big"
 	"testing"
 )
@@ -10,9 +9,8 @@ import (
 const TestCount = 1000
 
 func TestIsZero(t *testing.T) {
-	curve := secp256k1.S256()
-	a := make([]byte, 32)
-	a = curve.N.Bytes()
+	curve := S256()
+	a := curve.N.Bytes()
 	Ax, Ay := curve.ScalarBaseMult(a)
 	p1 := P256{X: Ax, Y: Ay}
 	res := p1.IsZero()
@@ -22,7 +20,7 @@ func TestIsZero(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
-	curve := secp256k1.S256()
+	curve := S256()
 	a1 := new(big.Int).SetInt64(71).Bytes()
 	A1x, A1y := curve.ScalarBaseMult(a1)
 	p1 := &P256{X: A1x, Y: A1y}
@@ -41,7 +39,7 @@ func TestAdd(t *testing.T) {
 }
 
 func TestScalarMultP256(t *testing.T) {
-	curve := secp256k1.S256()
+	curve := S256()
 	a1 := new(big.Int).SetInt64(71).Bytes()
 	Ax, Ay := curve.ScalarBaseMult(a1)
 	p1 := &P256{X: Ax, Y: Ay}
@@ -62,7 +60,7 @@ func TestScalarBaseMult(t *testing.T) {
 }
 
 func TestMapToGroup(t *testing.T) {
-	curve := secp256k1.S256()
+	curve := S256()
 	m := "Testing Hash-to-point function:"
 	p, _ := MapToGroup(m)
 	p.ScalarMult(p, curve.N)

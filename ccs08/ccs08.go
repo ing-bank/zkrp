@@ -31,6 +31,7 @@ import (
 	"github.com/mvdbos/zkpsdk/crypto/bn256"
 	. "github.com/mvdbos/zkpsdk/util"
 	"github.com/mvdbos/zkpsdk/util/bn"
+	"github.com/mvdbos/zkpsdk/util/intconversion"
 	"math"
 	"math/big"
 	"strconv"
@@ -109,7 +110,7 @@ func SetupSet(s []int64) (paramsSet, error) {
 		p.signatures[s[i]] = sig_i
 	}
 	//TODO: protect the 'master' key
-	h := GetBigInt("18560948149108576432482904553159745978835170526553990798435819795989606410925")
+	h := intconversion.BigFromBase10("18560948149108576432482904553159745978835170526553990798435819795989606410925")
 	p.H = new(bn256.G2).ScalarBaseMult(h)
 	return p, nil
 }
@@ -132,7 +133,7 @@ func SetupUL(u, l int64) (paramsUL, error) {
 		p.signatures[strconv.FormatInt(i, 10)] = sig_i
 	}
 	//TODO: protect the 'master' key
-	h := GetBigInt("18560948149108576432482904553159745978835170526553990798435819795989606410925")
+	h := intconversion.BigFromBase10("18560948149108576432482904553159745978835170526553990798435819795989606410925")
 	p.H = new(bn256.G2).ScalarBaseMult(h)
 	p.u = u
 	p.l = l
@@ -153,25 +154,25 @@ func ProveSet(x int64, r *big.Int, p paramsSet) (proofSet, error) {
 	proof_out.D.SetInfinity()
 	proof_out.m, _ = rand.Int(rand.Reader, bn256.Order)
 
-	D := new(bn256.G2)
 	v, _ = rand.Int(rand.Reader, bn256.Order)
 	A, ok := p.signatures[x]
-	if ok {
-		// D = g^s.H^m
-		D = new(bn256.G2).ScalarMult(p.H, proof_out.m)
-		proof_out.s, _ = rand.Int(rand.Reader, bn256.Order)
-		aux := new(bn256.G2).ScalarBaseMult(proof_out.s)
-		D.Add(D, aux)
 
-		proof_out.V = new(bn256.G2).ScalarMult(A, v)
-		proof_out.t, _ = rand.Int(rand.Reader, bn256.Order)
-		proof_out.a = bn256.Pair(G1, proof_out.V)
-		proof_out.a.ScalarMult(proof_out.a, proof_out.s)
-		proof_out.a.Invert(proof_out.a)
-		proof_out.a.Add(proof_out.a, new(bn256.GT).ScalarMult(E, proof_out.t))
-	} else {
+	if !ok {
 		return proof_out, errors.New("Could not generate proof. Element does not belong to the interval.")
 	}
+
+	// D = g^s.H^m
+	D := new(bn256.G2).ScalarMult(p.H, proof_out.m)
+	proof_out.s, _ = rand.Int(rand.Reader, bn256.Order)
+	aux := new(bn256.G2).ScalarBaseMult(proof_out.s)
+	D.Add(D, aux)
+
+	proof_out.V = new(bn256.G2).ScalarMult(A, v)
+	proof_out.t, _ = rand.Int(rand.Reader, bn256.Order)
+	proof_out.a = bn256.Pair(G1, proof_out.V)
+	proof_out.a.ScalarMult(proof_out.a, proof_out.s)
+	proof_out.a.Invert(proof_out.a)
+	proof_out.a.Add(proof_out.a, new(bn256.GT).ScalarMult(E, proof_out.t))
 	proof_out.D.Add(proof_out.D, D)
 
 	// Consider passing C as input,
@@ -202,13 +203,13 @@ func ProveUL(x, r *big.Int, p paramsUL) (proofUL, error) {
 	decx, _ := Decompose(x, p.u, p.l)
 
 	// Initialize variables
-	v = make([]*big.Int, p.l, p.l)
-	proof_out.V = make([]*bn256.G2, p.l, p.l)
-	proof_out.a = make([]*bn256.GT, p.l, p.l)
-	proof_out.s = make([]*big.Int, p.l, p.l)
-	proof_out.t = make([]*big.Int, p.l, p.l)
-	proof_out.zsig = make([]*big.Int, p.l, p.l)
-	proof_out.zv = make([]*big.Int, p.l, p.l)
+	v = make([]*big.Int, p.l)
+	proof_out.V = make([]*bn256.G2, p.l)
+	proof_out.a = make([]*bn256.GT, p.l)
+	proof_out.s = make([]*big.Int, p.l)
+	proof_out.t = make([]*big.Int, p.l)
+	proof_out.zsig = make([]*big.Int, p.l)
+	proof_out.zv = make([]*big.Int, p.l)
 	proof_out.D = new(bn256.G2)
 	proof_out.D.SetInfinity()
 	proof_out.m, _ = rand.Int(rand.Reader, bn256.Order)
@@ -354,7 +355,6 @@ type ccs08 struct {
 	p         *params
 	x, r      *big.Int
 	proof_out proof
-	pubk      *bn256.G1
 }
 
 /*

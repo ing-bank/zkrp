@@ -22,8 +22,6 @@ import (
 	"math/big"
 )
 
-var k1 = new(big.Int).SetBit(big.NewInt(0), 160, 1) // 2^160, security parameter that should match prover
-
 func CalculateHash(b1 *big.Int, b2 *big.Int) (*big.Int, error) {
 
 	digest := sha256.New()
@@ -32,7 +30,7 @@ func CalculateHash(b1 *big.Int, b2 *big.Int) (*big.Int, error) {
 		digest.Write(byteconversion.ToByteArray(b2))
 	}
 	output := digest.Sum(nil)
-	tmp := output[0:len(output)]
+	tmp := output[0:]
 	return byteconversion.FromByteArray(tmp)
 }
 
