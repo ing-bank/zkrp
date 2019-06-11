@@ -19,7 +19,7 @@ pool:
 variables:
   GOBIN:  '$(GOPATH)/bin' # Go binaries path
   GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
-  modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)' # Path to the module's code
+  modulePath: '$(system.defaultWorkingDirectory)/src/github.com/$(build.repository.name)' # Path to the module's code
 
 steps:
   - task: GoTool@0
@@ -41,7 +41,7 @@ steps:
 
   - script: |
       go version
-      go get -v -t -d ./...
+      go get -v -d ./...
       go build -v .
     workingDirectory: '$(modulePath)'
     displayName: 'Get dependencies, then build'
