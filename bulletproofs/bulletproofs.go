@@ -34,7 +34,6 @@ import (
 	"github.com/mvdbos/zkpsdk/util/bn"
 	"github.com/mvdbos/zkpsdk/util/byteconversion"
 	"github.com/mvdbos/zkpsdk/util/intconversion"
-	"io/ioutil"
 	"math"
 	"math/big"
 )
@@ -712,64 +711,6 @@ func CommitVectorBig(aL, aR []*big.Int, alpha *big.Int, G, H *p256.P256, g, h []
 }
 
 /*
-SaveToDisk is responsible for saving the generator to disk, such it is possible
-to then later.
-*/
-func (zkrp *bp) SaveToDisk(s string, p *proofBP) error {
-	data, err := json.Marshal(zkrp)
-	errw := ioutil.WriteFile(s, data, 0644)
-	if p != nil {
-		datap, errp := json.Marshal(p)
-		errpw := ioutil.WriteFile("proof.dat", datap, 0644)
-		if errp != nil || errpw != nil {
-			return errors.New("proof not saved to disk.")
-		}
-	}
-	if err != nil || errw != nil {
-		return errors.New("parameters not saved to disk.")
-	}
-	return nil
-}
-
-/*
-LoadGenFromDisk reads the generator from a file.
-*/
-func LoadParamFromDisk(s string) (*bp, error) {
-	var result bp
-	c, err := ioutil.ReadFile(s)
-	if err != nil {
-		return nil, err
-	}
-	if len(c) > 0 {
-		err := json.Unmarshal(c, &result)
-		if err != nil {
-			return nil, err
-		}
-		return &result, nil
-	}
-	return nil, errors.New("Could not load generators.")
-}
-
-/*
-LoadProofFromDisk reads the generator from a file.
-*/
-func LoadProofFromDisk(s string) (*proofBP, error) {
-	var result proofBP
-	c, err := ioutil.ReadFile(s)
-	if err != nil {
-		return nil, err
-	}
-	if len(c) > 0 {
-		err := json.Unmarshal(c, &result)
-		if err != nil {
-			return nil, err
-		}
-		return &result, nil
-	}
-	return nil, errors.New("Could not load proof.")
-}
-
-/*
 delta(y,z) = (z-z^2) . < 1^n, y^n > - z^3 . < 1^n, 2^n >
 */
 func (zkrp *bp) Delta(y, z *big.Int) (*big.Int, error) {
@@ -805,9 +746,7 @@ func (zkrp *bp) Delta(y, z *big.Int) (*big.Int, error) {
 Setup is responsible for computing the common parameters.
 */
 func (zkrp *bp) Setup(a, b int64) error {
-	var (
-		i int64
-	)
+	var i int64
 
 	zkrp.G = new(p256.P256).ScalarBaseMult(new(big.Int).SetInt64(1))
 	zkrp.H, _ = p256.MapToGroup(SEEDH)
@@ -826,8 +765,7 @@ func (zkrp *bp) Setup(a, b int64) error {
 	if setupErr != nil {
 		return setupErr
 	}
-
-	return zkrp.SaveToDisk("setup.dat", nil)
+	return nil
 }
 
 /*
@@ -981,10 +919,6 @@ func (zkrp *bp) Prove(secret *big.Int) (proofBP, error) {
 	proof.Proofip = proofip
 	proof.Commit = commit
 
-	saveErr := zkrp.SaveToDisk("setup.dat", &proof)
-	if saveErr != nil {
-		return proof, saveErr
-	}
 	return proof, nil
 }
 

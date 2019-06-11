@@ -17,9 +17,12 @@
 package bulletproofs
 
 import (
+	"encoding/json"
+	"errors"
 	"github.com/mvdbos/zkpsdk/crypto/p256"
 	"github.com/mvdbos/zkpsdk/util/bn"
 	"github.com/mvdbos/zkpsdk/util/intconversion"
+	"io/ioutil"
 	"math/big"
 	"testing"
 )
@@ -184,6 +187,8 @@ func TestInnerProduct(t *testing.T) {
 	// Review if it is the best way, since we maybe could use the
 	// inner product independently of the range proof.
 	_ = zkrp.Setup(0, 16)
+	_ = saveSetupToDisk(&zkrp)
+
 	a = make([]*big.Int, zkrp.N)
 	a[0] = new(big.Int).SetInt64(2)
 	a[1] = new(big.Int).SetInt64(-1)
@@ -197,6 +202,7 @@ func TestInnerProduct(t *testing.T) {
 	c := new(big.Int).SetInt64(142)
 	commit, _ := CommitInnerProduct(zkrp.Gg, zkrp.Hh, a, b)
 	_, _ = zkip.Setup(zkrp.H, zkrp.Gg, zkrp.Hh, c)
+
 	proof, _ := zkip.Prove(a, b, commit)
 	ok, _ := zkip.Verify(proof)
 	if ok != true {
@@ -211,9 +217,14 @@ func TestFalseBulletproofsZKRP(t *testing.T) {
 	var (
 		zkrp bp
 	)
-	zkrp.Setup(0, 4294967296) // ITS BEING USED TO COMPUTE N
+	_ = zkrp.Setup(0, 4294967296) // ITS BEING USED TO COMPUTE N
+
 	x := new(big.Int).SetInt64(4294967296)
+
 	proof, _ := zkrp.Prove(x)
+	_ = saveSetupToDisk(&zkrp)
+	_ = saveProofToDisk(&proof)
+
 	ok, _ := zkrp.Verify(proof)
 	if ok != false {
 		t.Errorf("Assert failure: expected true, actual: %t", ok)
@@ -227,9 +238,14 @@ func TestTrueBulletproofsZKRP(t *testing.T) {
 	var (
 		zkrp bp
 	)
-	zkrp.Setup(0, 4294967296) // ITS BEING USED TO COMPUTE N
+	_ = zkrp.Setup(0, 4294967296) // ITS BEING USED TO COMPUTE N
+
 	x := new(big.Int).SetInt64(65535)
+
 	proof, _ := zkrp.Prove(x)
+	_ = saveSetupToDisk(&zkrp)
+	_ = saveProofToDisk(&proof)
+
 	ok, _ := zkrp.Verify(proof)
 	if ok != true {
 		t.Errorf("Assert failure: expected true, actual: %t", ok)
@@ -245,8 +261,13 @@ func BenchmarkBulletproofs(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_ = zkrp.Setup(0, 4294967296) // ITS BEING USED TO COMPUTE N
+
 		x := new(big.Int).SetInt64(4294967295)
+
 		proof, _ = zkrp.Prove(x)
+		_ = saveSetupToDisk(&zkrp)
+		_ = saveProofToDisk(&proof)
+
 		ok, _ = zkrp.Verify(proof)
 		if ok != true {
 			b.Errorf("Assert failure: expected true, actual: %t", ok)
@@ -300,10 +321,59 @@ func TestInv(t *testing.T) {
 func TestHPrime(t *testing.T) {
 	var zkrp *bp
 	var proof *proofBP
-	zkrp, _ = LoadParamFromDisk("setup.dat")
-	proof, _ = LoadProofFromDisk("proof.dat")
+	zkrp, _ = loadSetupFromDisk("setup.dat")
+	proof, _ = loadProofFromDisk("proof.dat")
 	ok, _ := zkrp.Verify(*proof)
 	if !ok {
 		t.Errorf("Assert failure: expected true, actual: %t", ok)
 	}
 }
+
+func saveSetupToDisk(zkrp *bp) error {
+	data, err := json.Marshal(zkrp)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile("setup.dat", data, 0644)
+}
+
+func saveProofToDisk(p *proofBP) error {
+	datap, errp := json.Marshal(p)
+	if errp != nil {
+		return errp
+	}
+	return ioutil.WriteFile("proof.dat", datap, 0644)
+}
+
+func loadSetupFromDisk(s string) (*bp, error) {
+	var result bp
+	c, err := ioutil.ReadFile(s)
+	if err != nil {
+		return nil, err
+	}
+	if len(c) > 0 {
+		err := json.Unmarshal(c, &result)
+		if err != nil {
+			return nil, err
+		}
+		return &result, nil
+	}
+	return nil, errors.New("Could not load generators.")
+}
+
+func loadProofFromDisk(s string) (*proofBP, error) {
+	var result proofBP
+	c, err := ioutil.ReadFile(s)
+	if err != nil {
+		return nil, err
+	}
+	if len(c) > 0 {
+		err := json.Unmarshal(c, &result)
+		if err != nil {
+			return nil, err
+		}
+		return &result, nil
+	}
+	return nil, errors.New("Could not load proof.")
+}
+
