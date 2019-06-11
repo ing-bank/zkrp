@@ -34,7 +34,6 @@ import (
 	"github.com/mvdbos/zkpsdk/util/bn"
 	"github.com/mvdbos/zkpsdk/util/byteconversion"
 	"github.com/mvdbos/zkpsdk/util/intconversion"
-	"io/ioutil"
 	"math"
 	"math/big"
 )
@@ -709,44 +708,6 @@ func CommitVectorBig(aL, aR []*big.Int, alpha *big.Int, G, H *p256.P256, g, h []
 		i = i + 1
 	}
 	return R, nil
-}
-
-/*
-LoadGenFromDisk reads the generator from a file.
-*/
-func LoadParamFromDisk(s string) (*bp, error) {
-	var result bp
-	c, err := ioutil.ReadFile(s)
-	if err != nil {
-		return nil, err
-	}
-	if len(c) > 0 {
-		err := json.Unmarshal(c, &result)
-		if err != nil {
-			return nil, err
-		}
-		return &result, nil
-	}
-	return nil, errors.New("Could not load generators.")
-}
-
-/*
-LoadProofFromDisk reads the generator from a file.
-*/
-func LoadProofFromDisk(s string) (*proofBP, error) {
-	var result proofBP
-	c, err := ioutil.ReadFile(s)
-	if err != nil {
-		return nil, err
-	}
-	if len(c) > 0 {
-		err := json.Unmarshal(c, &result)
-		if err != nil {
-			return nil, err
-		}
-		return &result, nil
-	}
-	return nil, errors.New("Could not load proof.")
 }
 
 /*

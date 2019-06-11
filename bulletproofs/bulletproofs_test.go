@@ -18,6 +18,7 @@ package bulletproofs
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/mvdbos/zkpsdk/crypto/p256"
 	"github.com/mvdbos/zkpsdk/util/bn"
 	"github.com/mvdbos/zkpsdk/util/intconversion"
@@ -320,8 +321,8 @@ func TestInv(t *testing.T) {
 func TestHPrime(t *testing.T) {
 	var zkrp *bp
 	var proof *proofBP
-	zkrp, _ = LoadParamFromDisk("setup.dat")
-	proof, _ = LoadProofFromDisk("proof.dat")
+	zkrp, _ = loadSetupFromDisk("setup.dat")
+	proof, _ = loadProofFromDisk("proof.dat")
 	ok, _ := zkrp.Verify(*proof)
 	if !ok {
 		t.Errorf("Assert failure: expected true, actual: %t", ok)
@@ -343,3 +344,36 @@ func saveProofToDisk(p *proofBP) error {
 	}
 	return ioutil.WriteFile("proof.dat", datap, 0644)
 }
+
+func loadSetupFromDisk(s string) (*bp, error) {
+	var result bp
+	c, err := ioutil.ReadFile(s)
+	if err != nil {
+		return nil, err
+	}
+	if len(c) > 0 {
+		err := json.Unmarshal(c, &result)
+		if err != nil {
+			return nil, err
+		}
+		return &result, nil
+	}
+	return nil, errors.New("Could not load generators.")
+}
+
+func loadProofFromDisk(s string) (*proofBP, error) {
+	var result proofBP
+	c, err := ioutil.ReadFile(s)
+	if err != nil {
+		return nil, err
+	}
+	if len(c) > 0 {
+		err := json.Unmarshal(c, &result)
+		if err != nil {
+			return nil, err
+		}
+		return &result, nil
+	}
+	return nil, errors.New("Could not load proof.")
+}
+
