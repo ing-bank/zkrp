@@ -17,15 +17,11 @@
 package bulletproofs
 
 import (
-	"crypto/rand"
-	"fmt"
-	"github.com/mvdbos/zkpsdk/crypto/bn256"
 	"github.com/mvdbos/zkpsdk/crypto/p256"
 	"github.com/mvdbos/zkpsdk/util/bn"
 	"github.com/mvdbos/zkpsdk/util/intconversion"
 	"math/big"
 	"testing"
-	"time"
 )
 
 /*
@@ -215,25 +211,10 @@ func TestFalseBulletproofsZKRP(t *testing.T) {
 	var (
 		zkrp bp
 	)
-	startTime := time.Now()
 	zkrp.Setup(0, 4294967296) // ITS BEING USED TO COMPUTE N
-	setupTime := time.Now()
-	fmt.Println("Setup time:")
-	fmt.Println(setupTime.Sub(startTime))
-
 	x := new(big.Int).SetInt64(4294967296)
 	proof, _ := zkrp.Prove(x)
-	proofTime := time.Now()
-	fmt.Println("Proof time:")
-	fmt.Println(proofTime.Sub(setupTime))
-
 	ok, _ := zkrp.Verify(proof)
-	verifyTime := time.Now()
-	fmt.Println("Verify time:")
-	fmt.Println(verifyTime.Sub(proofTime))
-
-	fmt.Println("Range Proofs invalid test result:")
-	fmt.Println(ok)
 	if ok != false {
 		t.Errorf("Assert failure: expected true, actual: %t", ok)
 	}
@@ -246,25 +227,10 @@ func TestTrueBulletproofsZKRP(t *testing.T) {
 	var (
 		zkrp bp
 	)
-	startTime := time.Now()
 	zkrp.Setup(0, 4294967296) // ITS BEING USED TO COMPUTE N
-	setupTime := time.Now()
-	fmt.Println("Setup time:")
-	fmt.Println(setupTime.Sub(startTime))
-
 	x := new(big.Int).SetInt64(65535)
 	proof, _ := zkrp.Prove(x)
-	proofTime := time.Now()
-	fmt.Println("Proof time:")
-	fmt.Println(proofTime.Sub(setupTime))
-
 	ok, _ := zkrp.Verify(proof)
-	verifyTime := time.Now()
-	fmt.Println("Verify time:")
-	fmt.Println(verifyTime.Sub(proofTime))
-
-	fmt.Println("Range Proofs result:")
-	fmt.Println(ok)
 	if ok != true {
 		t.Errorf("Assert failure: expected true, actual: %t", ok)
 	}
@@ -286,20 +252,6 @@ func BenchmarkBulletproofs(b *testing.B) {
 			b.Errorf("Assert failure: expected true, actual: %t", ok)
 		}
 	}
-}
-
-func BenchmarkScalarMult(b *testing.B) {
-	var (
-		a *big.Int
-		A *bn256.G1
-	)
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		a, _ = rand.Int(rand.Reader, bn256.Order)
-		A = new(bn256.G1).ScalarBaseMult(a)
-	}
-	fmt.Println("A:")
-	fmt.Println(A)
 }
 
 func TestHashBP(t *testing.T) {

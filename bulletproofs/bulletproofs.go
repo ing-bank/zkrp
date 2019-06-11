@@ -1068,8 +1068,6 @@ func (zkrp *bp) Verify(proof proofBP) (bool, error) {
 	mz := bn.Sub(ORDER, z)
 	vmz, _ := VectorCopy(mz, zkrp.N)
 	gpmz, _ := VectorExp(zkrp.Gg, vmz)
-	//fmt.Println("############## gpmz ###############")
-	//fmt.Println(gpmz);
 
 	// z.y^n
 	vz, _ := VectorCopy(z, zkrp.N)

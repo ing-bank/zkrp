@@ -18,14 +18,12 @@ package ccs08
 
 import (
 	"crypto/rand"
-	"fmt"
 	"github.com/mvdbos/zkpsdk/crypto/bn256"
 	. "github.com/mvdbos/zkpsdk/util"
 	"github.com/mvdbos/zkpsdk/util/bn"
 	"github.com/mvdbos/zkpsdk/util/intconversion"
 	"math/big"
 	"testing"
-	"time"
 )
 
 /*
@@ -102,8 +100,6 @@ func TestZKRP_UL(t *testing.T) {
 	r, _ = rand.Int(rand.Reader, bn256.Order)
 	proof_out, _ := ProveUL(new(big.Int).SetInt64(42176), r, p)
 	result, _ := VerifyUL(&proof_out, &p)
-	fmt.Println("ZKRP UL result: ")
-	fmt.Println(result)
 	if result != true {
 		t.Errorf("Assert failure: expected true, actual: %t", result)
 	}
@@ -136,22 +132,10 @@ func TestZKSet(t *testing.T) {
 	s[1] = 42
 	s[2] = 61
 	s[3] = 71
-	startTime := time.Now()
 	p, _ := SetupSet(s)
-	setupTime := time.Now()
-	fmt.Println(" ############### Setup time:")
-	fmt.Println(setupTime.Sub(startTime))
 	r, _ = rand.Int(rand.Reader, bn256.Order)
 	proof_out, _ := ProveSet(12, r, p)
-	proofTime := time.Now()
-	fmt.Println("Proof time:")
-	fmt.Println(proofTime.Sub(setupTime))
 	result, _ := VerifySet(&proof_out, &p)
-	verifyTime := time.Now()
-	fmt.Println("Verify time:")
-	fmt.Println(verifyTime.Sub(proofTime))
-	fmt.Println("ZK Set Membership result: ")
-	fmt.Println(result)
 	if result != true {
 		t.Errorf("Assert failure: expected true, actual: %t", result)
 	}
@@ -165,26 +149,14 @@ func TestZKRP(t *testing.T) {
 		result bool
 		zkrp   ccs08
 	)
-	startTime := time.Now()
 	zkrp.Setup(347184000, 599644800)
-	setupTime := time.Now()
-	fmt.Println(" ############### Setup time:")
-	fmt.Println(setupTime.Sub(startTime))
 	zkrp.x = new(big.Int).SetInt64(419835123)
 	zkrp.r, _ = rand.Int(rand.Reader, bn256.Order)
 	e := zkrp.Prove()
-	proofTime := time.Now()
-	fmt.Println("Proof time:")
-	fmt.Println(proofTime.Sub(setupTime))
 	if e != nil {
-		fmt.Println(e.Error())
+		t.Errorf("Error while proving ZKRP: %s", e.Error())
 	}
 	result, _ = zkrp.Verify()
-	verifyTime := time.Now()
-	fmt.Println("Verify time:")
-	fmt.Println(verifyTime.Sub(proofTime))
-	fmt.Println("ZKRP result: ")
-	fmt.Println(result)
 	if result != true {
 		t.Errorf("Assert failure: expected true, actual: %t", result)
 	}
