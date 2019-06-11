@@ -157,7 +157,8 @@ func (e *G1) Unmarshal(m []byte) (*G1, bool) {
 	e.p.x.SetBytes(m[0*numBytes : 1*numBytes])
 	e.p.y.SetBytes(m[1*numBytes : 2*numBytes])
 
-	if e.p.x.Sign() == 0 && e.p.y.Sign() == 0 {
+	if (e.p.x.Sign() == 0 && e.p.y.Sign() == 0) || 
+	   (e.p.x.String() == "0" && e.p.y.String() == "1") {
 		// This is the point at infinity.
 		e.p.y.SetInt64(1)
 		e.p.z.SetInt64(0)
