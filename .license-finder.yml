@@ -1,0 +1,25 @@
+---
+- - :whitelist
+  - LGPL
+  - :who: 
+    :why: 
+    :versions: []
+    :when: 2019-06-13 09:16:40.012169000 Z
+- - :whitelist
+  - MIT
+  - :who: 
+    :why: 
+    :versions: []
+    :when: 2019-06-13 09:16:44.743375000 Z
+- - :add_package
+  - github.com/ethereum/go-ethereum
+  - 
+  - &1
+    :who: 
+    :why: 
+    :versions: []
+    :when: 2019-06-13 09:24:31.804485000 Z
+- - :license
+  - github.com/ethereum/go-ethereum
+  - LGPL
+  - *1

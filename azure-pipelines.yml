@@ -72,6 +72,16 @@ steps:
     workingDirectory: '$(modulePath)'
     displayName: 'Get go-mod-outdated, then run'
 
+  # license_finder --decisions-file=.license-finder.yml
+  - script: |
+      gem install license_finder
+      license_finder --decisions-file=.license-finder.yml
+    workingDirectory: '$(modulePath)'
+    displayName: 'Get license-finder, then run'
+
+
+
+
   - script: |
       go test -v ./...
     workingDirectory: '$(modulePath)'
