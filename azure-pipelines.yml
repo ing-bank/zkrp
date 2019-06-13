@@ -28,6 +28,11 @@ steps:
       goPath: $(GOPATH)
       goBin: $(GOBIN)
 
+  - task: UseRubyVersion@0
+    inputs:
+      versionSpec: '>= 2.3'
+      addToPath: true
+
   - script: |
       mkdir -p '$(GOBIN)'
       mkdir -p '$(GOPATH)/pkg'
@@ -47,10 +52,10 @@ steps:
     displayName: 'Get dependencies, then build'
 
   - script: |
-      curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.17.1
+      curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.17.1
       golangci-lint run -v
     workingDirectory: '$(modulePath)'
-    displayName: 'Get golangci-lint, then lint'
+    displayName: 'golangci-lint'
 
   # errcheck can also be run as part of golangci-lint, but for some reason it then ignores the standard excludes
   - script: |
@@ -60,7 +65,28 @@ steps:
       cd  $(go env GOPATH)/src/github.com/kisielk/errcheck && go get ./... &&  go install && cd -
       errcheck -verbose -ignoretests ./...
     workingDirectory: '$(modulePath)'
-    displayName: 'Get errcheck, then run'
+    displayName: 'errcheck'
+
+  # https://github.com/psampaz/go-mod-outdated/archive/v0.3.0.tar.gz
+  - script: |
+      mkdir -p $(go env GOPATH)/src/github.com/psampaz/go-mod-outdated
+      curl -sfL -o $(go env GOPATH)/src/github.com/psampaz/go-mod-outdated.tar.gz https://github.com/psampaz/go-mod-outdated/archive/v0.3.0.tar.gz
+      tar xzf $(go env GOPATH)/src/github.com/psampaz/go-mod-outdated.tar.gz --directory $(go env GOPATH)/src/github.com/psampaz/go-mod-outdated --strip-components=1
+      cd  $(go env GOPATH)/src/github.com/psampaz/go-mod-outdated && go get ./... &&  go install && cd -
+      go list -u -m -json all | go-mod-outdated -update -direct
+    workingDirectory: '$(modulePath)'
+    displayName: 'go-mod-outdated'
+
+  # license_finder --decisions-file=.license-finder.yml
+  - script: |
+
+      gem install license_finder
+      license_finder --decisions-file=.license-finder.yml
+    workingDirectory: '$(modulePath)'
+    displayName: 'license-finder'
+
+
+
 
   - script: |
       go test -v ./...
