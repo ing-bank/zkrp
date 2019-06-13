@@ -28,6 +28,11 @@ steps:
       goPath: $(GOPATH)
       goBin: $(GOBIN)
 
+  - task: UseRubyVersion@0
+    inputs:
+      versionSpec: '>= 2.3'
+      addToPath: true
+
   - script: |
       mkdir -p '$(GOBIN)'
       mkdir -p '$(GOPATH)/pkg'
@@ -74,6 +79,7 @@ steps:
 
   # license_finder --decisions-file=.license-finder.yml
   - script: |
+
       gem install license_finder
       license_finder --decisions-file=.license-finder.yml
     workingDirectory: '$(modulePath)'
