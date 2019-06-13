@@ -127,3 +127,15 @@ func TestMod(t *testing.T) {
 		t.Errorf("Assert failure: expected 2, actual: %s", result)
 	}
 }
+
+// what does this test? Only the the bn.ModInverse function? That is already tested by bn_test.go/TestModInverse1 and 2
+// The main difference looks to be the ORDER param?
+//func TestInv(t *testing.T) {
+//	y, _ := new(big.Int).SetString("103823382860325249552741530200099120077084118788867728791742258217664299339569", 10)
+//	yinv := ModInverse(y, bulletproofs.ORDER)
+//	res, _ := new(big.Int).SetString("38397371868935917445400134055424677162505875368971619911110421656148020877351", 10)
+//	ok := yinv.Cmp(res) != 0
+//	if ok {
+//		t.Errorf("Assert failure: expected true, actual: %t", ok)
+//	}
+//}
