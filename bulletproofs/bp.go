@@ -325,10 +325,7 @@ func UpdateGenerators(Hh []*p256.P256, y *big.Int, N int64) ([]*p256.P256, error
 aR = aL - 1^n
 */
 func computeAR(x []int64) ([]int64, error) {
-	var (
-		result []int64
-	)
-	result = make([]int64, len(x))
+	result := make([]int64, len(x))
 	for i:=int64(0); i < int64(len(x)); i++ {
 		if x[i] == 0 {
 			result[i] = -1
@@ -342,11 +339,8 @@ func computeAR(x []int64) ([]int64, error) {
 }
 
 func commitVectorBig(aL, aR []*big.Int, alpha *big.Int, H *p256.P256, g, h []*p256.P256, n int64) *p256.P256 {
-	var (
-		R *p256.P256
-	)
 	// Compute h^alpha.vg^aL.vh^aR
-	R = new(p256.P256).ScalarMult(H, alpha)
+	R := new(p256.P256).ScalarMult(H, alpha)
 	for i:=int64(0); i < n; i++ {
 		R.Multiply(R, new(p256.P256).ScalarMult(g[i], aL[i]))
 		R.Multiply(R, new(p256.P256).ScalarMult(h[i], aR[i]))
@@ -358,11 +352,8 @@ func commitVectorBig(aL, aR []*big.Int, alpha *big.Int, H *p256.P256, g, h []*p2
 Commitvector computes a commitment to the bit of the secret.
 */
 func commitVector(aL, aR []int64, alpha *big.Int, H *p256.P256, g, h []*p256.P256, n int64) *p256.P256 {
-	var (
-		R *p256.P256
-	)
 	// Compute h^alpha.vg^aL.vh^aR
-	R = new(p256.P256).ScalarMult(H, alpha)
+	R := new(p256.P256).ScalarMult(H, alpha)
 	for i:=int64(0); i < n; i++ {
 		gaL := new(p256.P256).ScalarMult(g[i], new(big.Int).SetInt64(aL[i]))
 		haR := new(p256.P256).ScalarMult(h[i], new(big.Int).SetInt64(aR[i]))
