@@ -67,7 +67,9 @@ func (zkrp *bp) Setup(a, b int64) error {
 }
 
 /*
-Prove computes the ZK proof.
+Prove computes the ZK rangeproof. The documentation and comments are based on
+eprint version of Bulletproofs papers:
+https://eprint.iacr.org/2017/1066.pdf
 */
 func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 	var (
@@ -77,7 +79,7 @@ func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 		proof ProofBP
 	)
 	//////////////////////////////////////////////////////////////////////////////
-	// First phase
+	// First phase: page 19
 	//////////////////////////////////////////////////////////////////////////////
 
 	// commitment to v and gamma
@@ -85,33 +87,36 @@ func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 	V, _ := CommitG1(secret, gamma, zkrp.H)
 
 	// aL, aR and commitment: (A, alpha)
-	aL, _ := Decompose(secret, 2, zkrp.N)
-	aR, _ := computeAR(aL)
-	alpha, _ := rand.Int(rand.Reader, ORDER)
-	A := commitVector(aL, aR, alpha, zkrp.H, zkrp.Gg, zkrp.Hh, zkrp.N)
+	aL, _ := Decompose(secret, 2, zkrp.N)                                  // (41)
+	aR, _ := computeAR(aL)                                                 // (42)
+	alpha, _ := rand.Int(rand.Reader, ORDER)                               // (43)
+	A := commitVector(aL, aR, alpha, zkrp.H, zkrp.Gg, zkrp.Hh, zkrp.N)     // (44) 
 
 	// sL, sR and commitment: (S, rho)
-	rho, _ := rand.Int(rand.Reader, ORDER)
 	sL = make([]*big.Int, zkrp.N)
 	sR = make([]*big.Int, zkrp.N)
 	i = 0
-	for i < zkrp.N {
+	for i < zkrp.N {                                                       // (45)
 		sL[i], _ = rand.Int(rand.Reader, ORDER)
 		sR[i], _ = rand.Int(rand.Reader, ORDER)
 		i = i + 1
 	}
-	S := commitVectorBig(sL, sR, rho, zkrp.H, zkrp.Gg, zkrp.Hh, zkrp.N)
+	rho, _ := rand.Int(rand.Reader, ORDER)                                 // (46)
+	S := commitVectorBig(sL, sR, rho, zkrp.H, zkrp.Gg, zkrp.Hh, zkrp.N)    // (47)
 
-	// Fiat-Shamir heuristic to compute challenges y, z
+	// Fiat-Shamir heuristic to compute challenges y and z, corresponds to    (49)
 	y, z, _ := HashBP(A, S)
 
 	//////////////////////////////////////////////////////////////////////////////
-	// Second phase
+	// Second phase: page 20
 	//////////////////////////////////////////////////////////////////////////////
-	tau1, _ := rand.Int(rand.Reader, ORDER) // page 20 from eprint version
-	tau2, _ := rand.Int(rand.Reader, ORDER)
+	tau1, _ := rand.Int(rand.Reader, ORDER)                                // (52)
+	tau2, _ := rand.Int(rand.Reader, ORDER)                                // (52)
 
 	// compute t1: < aL - z.1^n, y^n . sR > + < sL, y^n . (aR + z . 1^n) >
+	/*
+           The paper does not describe how to compute t1 and t2.
+	*/
 	vz, _ := VectorCopy(z, zkrp.N)
 	vy := powerOf(y, zkrp.N)
 
@@ -147,10 +152,10 @@ func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 	t2 = bn.Mod(t2, ORDER)
 
 	// compute T1
-	T1, _ := CommitG1(t1, tau1, zkrp.H)
+	T1, _ := CommitG1(t1, tau1, zkrp.H)                                    // (53)
 
 	// compute T2
-	T2, _ := CommitG1(t2, tau2, zkrp.H)
+	T2, _ := CommitG1(t2, tau2, zkrp.H)                                    // (53)
 
 	// Fiat-Shamir heuristic to compute 'random' challenge x
 	x, _, _ := HashBP(T1, T2)
@@ -159,11 +164,11 @@ func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 	// Third phase                                                              //
 	//////////////////////////////////////////////////////////////////////////////
 
-	// compute bl
+	// compute bl                                                          // (58)
 	sLx, _ := VectorScalarMul(sL, x)
 	bl, _ := VectorAdd(aLmvz, sLx)
 
-	// compute br
+	// compute br                                                          // (59)
 	// y^n . ( aR + z.1^n + sR.x )
 	sRx, _ := VectorScalarMul(sR, x)
 	aRzn, _ = VectorAdd(aRzn, sRx)
@@ -171,22 +176,22 @@ func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 	// y^n . ( aR + z.1^n sR.x ) + z^2 . 2^n
 	br, _ := VectorAdd(ynaRzn, z22n)
 
-	// Compute t` = < bl, br >
+	// Compute t` = < bl, br >                                             // (60)
 	tprime, _ := ScalarProduct(bl, br)
 
-	// Compute taux = tau2 . x^2 + tau1 . x + z^2 . gamma
+	// Compute taux = tau2 . x^2 + tau1 . x + z^2 . gamma                  // (61)
 	taux := bn.Multiply(tau2, bn.Multiply(x, x))
 	taux = bn.Add(taux, bn.Multiply(tau1, x))
 	taux = bn.Add(taux, bn.Multiply(bn.Multiply(z, z), gamma))
 	taux = bn.Mod(taux, ORDER)
 
-	// Compute mu = alpha + rho.x
+	// Compute mu = alpha + rho.x                                          // (62)
 	mu := bn.Multiply(rho, x)
 	mu = bn.Add(mu, alpha)
 	mu = bn.Mod(mu, ORDER)
 
 	// Inner Product over (g, h', P.h^-mu, tprime)
-	// Compute h'
+	// Compute h'                                                          // (64)
 	hprime := make([]*p256.P256, zkrp.N)
 	// Switch generators
 	yinv := bn.ModInverse(y, ORDER)
@@ -199,10 +204,9 @@ func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 		i = i + 1
 	}
 
-	// Update Inner Product Proof Setup
+	// Update Inner Product Proof Setup                           // (Section 4.2)
 	zkrp.Zkip.Hh = hprime
 	zkrp.Zkip.Cc = tprime
-
 	commit := commitInnerProduct(zkrp.Gg, hprime, bl, br)
 	proofip, _ := zkrp.Zkip.Prove(bl, br, commit)
 
@@ -232,7 +236,7 @@ func (zkrp *bp) Verify(proof ProofBP) (bool, error) {
 	y, z, _ := HashBP(proof.A, proof.S)
 	x, _, _ := HashBP(proof.T1, proof.T2)
 
-	// Switch generators
+	// Switch generators                                                   // (64)
 	yinv := bn.ModInverse(y, ORDER)
 	expy := yinv
 	hprime[0] = zkrp.Hh[0]
