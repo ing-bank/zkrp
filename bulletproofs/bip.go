@@ -181,17 +181,15 @@ func (zkip *bip) Verify(proof proofBip) (bool, error) {
 
 	logn := len(proof.Ls)
 	var (
-		i                                    int64
 		x, xinv, x2, x2inv                   *big.Int
 		ngprime, nhprime, ngprime2, nhprime2 []*p256.P256
 	)
 
-	i = 0
 	gprime := zkip.Gg
 	hprime := zkip.Hh
 	Pprime := zkip.P
 	nprime := proof.N
-	for i < int64(logn) {
+	for i:=int64(0); i<int64(logn); i++ {
 		nprime = nprime / 2                                                   // (20)
 		x, _, _ = HashBP(proof.Ls[i], proof.Rs[i])                            // (26)
 		xinv = bn.ModInverse(x, ORDER)
@@ -208,7 +206,6 @@ func (zkip *bip) Verify(proof proofBip) (bool, error) {
 		x2inv = bn.ModInverse(x2, ORDER)
 		Pprime.Multiply(Pprime, new(p256.P256).ScalarMult(proof.Ls[i], x2))
 		Pprime.Multiply(Pprime, new(p256.P256).ScalarMult(proof.Rs[i], x2inv))
-		i = i + 1
 	}
 
 	// c == a*b and checks if P = g^a.h^b.u^c                                     // (16)
@@ -232,18 +229,12 @@ func (zkip *bip) Verify(proof proofBip) (bool, error) {
 hashIP is responsible for the computing a Zp element given elements from GT and G1.
 */
 func hashIP(g, h []*p256.P256, P *p256.P256, c *big.Int, n int64) (*big.Int, error) {
-	var (
-		i int64
-	)
-
 	digest := sha256.New()
 	digest.Write([]byte(P.String()))
 
-	i = 0
-	for i < n {
+	for i:=int64(0); i<n; i++ {
 		digest.Write([]byte(g[i].String()))
 		digest.Write([]byte(h[i].String()))
-		i = i + 1
 	}
 
 	digest.Write([]byte(c.String()))
@@ -274,14 +265,12 @@ VectorScalarExp computes a[i]^b for each i.
 func VectorScalarExp(a []*p256.P256, b *big.Int) ([]*p256.P256, error) {
 	var (
 		result []*p256.P256
-		i, n   int64
+		n   int64
 	)
 	n = int64(len(a))
 	result = make([]*p256.P256, n)
-	i = 0
-	for i < n {
+	for i:=int64(0); i<n; i++ {
 		result[i] = new(p256.P256).ScalarMult(a[i], b)
-		i = i + 1
 	}
 	return result, nil
 }

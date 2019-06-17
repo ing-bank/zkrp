@@ -44,18 +44,14 @@ type ProofBP struct {
 Setup is responsible for computing the common parameters.
 */
 func (zkrp *bp) Setup(a, b int64) error {
-	var i int64
-
 	zkrp.G = new(p256.P256).ScalarBaseMult(new(big.Int).SetInt64(1))
 	zkrp.H, _ = p256.MapToGroup(SEEDH)
 	zkrp.N = int64(math.Log2(float64(b)))
 	zkrp.Gg = make([]*p256.P256, zkrp.N)
 	zkrp.Hh = make([]*p256.P256, zkrp.N)
-	i = 0
-	for i < zkrp.N {
+	for i:=int64(0); i < zkrp.N; i++ {
 		zkrp.Gg[i], _ = p256.MapToGroup(SEEDH + "g" + string(i))
 		zkrp.Hh[i], _ = p256.MapToGroup(SEEDH + "h" + string(i))
-		i = i + 1
 	}
 
 	// Setup Inner Product
@@ -81,8 +77,6 @@ https://eprint.iacr.org/2017/1066.pdf
 */
 func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 	var (
-		sL    []*big.Int
-		sR    []*big.Int
 		proof ProofBP
 	)
 	//////////////////////////////////////////////////////////////////////////////
@@ -100,8 +94,8 @@ func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 	A := commitVector(aL, aR, alpha, zkrp.H, zkrp.Gg, zkrp.Hh, zkrp.N)     // (44) 
 
 	// sL, sR and commitment: (S, rho)                                     // (45)
-	sL, _ = SampleRandomVector(zkrp.N) 
-	sR, _ = SampleRandomVector(zkrp.N) 
+	sL, _ := SampleRandomVector(zkrp.N) 
+	sR, _ := SampleRandomVector(zkrp.N) 
 	rho, _ := rand.Int(rand.Reader, ORDER)                                 // (46)
 	S := commitVectorBig(sL, sR, rho, zkrp.H, zkrp.Gg, zkrp.Hh, zkrp.N)    // (47)
 
@@ -114,10 +108,10 @@ func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 	tau1, _ := rand.Int(rand.Reader, ORDER)                                // (52)
 	tau2, _ := rand.Int(rand.Reader, ORDER)                                // (52)
 
-	// compute t1: < aL - z.1^n, y^n . sR > + < sL, y^n . (aR + z . 1^n) >
 	/*
            The paper does not describe how to compute t1 and t2.
 	*/
+	// compute t1: < aL - z.1^n, y^n . sR > + < sL, y^n . (aR + z . 1^n) >
 	vz, _ := VectorCopy(z, zkrp.N)
 	vy := powerOf(y, zkrp.N)
 
@@ -332,12 +326,10 @@ aR = aL - 1^n
 */
 func computeAR(x []int64) ([]int64, error) {
 	var (
-		i      int64
 		result []int64
 	)
 	result = make([]int64, len(x))
-	i = 0
-	for i < int64(len(x)) {
+	for i:=int64(0); i < int64(len(x)); i++ {
 		if x[i] == 0 {
 			result[i] = -1
 		} else if x[i] == 1 {
@@ -345,23 +337,19 @@ func computeAR(x []int64) ([]int64, error) {
 		} else {
 			return nil, errors.New("input contains non-binary element")
 		}
-		i = i + 1
 	}
 	return result, nil
 }
 
 func commitVectorBig(aL, aR []*big.Int, alpha *big.Int, H *p256.P256, g, h []*p256.P256, n int64) *p256.P256 {
 	var (
-		i int64
 		R *p256.P256
 	)
 	// Compute h^alpha.vg^aL.vh^aR
 	R = new(p256.P256).ScalarMult(H, alpha)
-	i = 0
-	for i < n {
+	for i:=int64(0); i < n; i++ {
 		R.Multiply(R, new(p256.P256).ScalarMult(g[i], aL[i]))
 		R.Multiply(R, new(p256.P256).ScalarMult(h[i], aR[i]))
-		i = i + 1
 	}
 	return R
 }
@@ -371,18 +359,15 @@ Commitvector computes a commitment to the bit of the secret.
 */
 func commitVector(aL, aR []int64, alpha *big.Int, H *p256.P256, g, h []*p256.P256, n int64) *p256.P256 {
 	var (
-		i int64
 		R *p256.P256
 	)
 	// Compute h^alpha.vg^aL.vh^aR
 	R = new(p256.P256).ScalarMult(H, alpha)
-	i = 0
-	for i < n {
+	for i:=int64(0); i < n; i++ {
 		gaL := new(p256.P256).ScalarMult(g[i], new(big.Int).SetInt64(aL[i]))
 		haR := new(p256.P256).ScalarMult(h[i], new(big.Int).SetInt64(aR[i]))
 		R.Multiply(R, gaL)
 		R.Multiply(R, haR)
-		i = i + 1
 	}
 	return R
 }
