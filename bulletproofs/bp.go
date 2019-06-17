@@ -66,6 +66,14 @@ func (zkrp *bp) Setup(a, b int64) error {
 	return nil
 }
 
+func SampleRandomVector(N int64) ([]*big.Int, error) {
+	s := make([]*big.Int, N)
+	for i:=int64(0); i < N; i++ {                                                       // (45)
+		s[i], _ = rand.Int(rand.Reader, ORDER)
+	}
+	return s, nil;
+}
+
 /*
 Prove computes the ZK rangeproof. The documentation and comments are based on
 eprint version of Bulletproofs papers:
@@ -73,7 +81,6 @@ https://eprint.iacr.org/2017/1066.pdf
 */
 func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 	var (
-		i     int64
 		sL    []*big.Int
 		sR    []*big.Int
 		proof ProofBP
@@ -92,15 +99,9 @@ func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 	alpha, _ := rand.Int(rand.Reader, ORDER)                               // (43)
 	A := commitVector(aL, aR, alpha, zkrp.H, zkrp.Gg, zkrp.Hh, zkrp.N)     // (44) 
 
-	// sL, sR and commitment: (S, rho)
-	sL = make([]*big.Int, zkrp.N)
-	sR = make([]*big.Int, zkrp.N)
-	i = 0
-	for i < zkrp.N {                                                       // (45)
-		sL[i], _ = rand.Int(rand.Reader, ORDER)
-		sR[i], _ = rand.Int(rand.Reader, ORDER)
-		i = i + 1
-	}
+	// sL, sR and commitment: (S, rho)                                     // (45)
+	sL, _ = SampleRandomVector(zkrp.N) 
+	sR, _ = SampleRandomVector(zkrp.N) 
 	rho, _ := rand.Int(rand.Reader, ORDER)                                 // (46)
 	S := commitVectorBig(sL, sR, rho, zkrp.H, zkrp.Gg, zkrp.Hh, zkrp.N)    // (47)
 
