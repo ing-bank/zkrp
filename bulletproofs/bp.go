@@ -191,18 +191,7 @@ func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 	mu = bn.Mod(mu, ORDER)
 
 	// Inner Product over (g, h', P.h^-mu, tprime)
-	// Compute h'                                                          // (64)
-	hprime := make([]*p256.P256, zkrp.N)
-	// Switch generators
-	yinv := bn.ModInverse(y, ORDER)
-	expy := yinv
-	hprime[0] = zkrp.Hh[0]
-	i = 1
-	for i < zkrp.N {
-		hprime[i] = new(p256.P256).ScalarMult(zkrp.Hh[i], expy)
-		expy = bn.Multiply(expy, yinv)
-		i = i + 1
-	}
+	hprime, _ := UpdateGenerators(zkrp.Hh, y, zkrp.N)
 
 	// Update Inner Product Proof Setup                           // (Section 4.2)
 	zkrp.Zkip.Hh = hprime
@@ -228,24 +217,12 @@ func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 Verify returns true if and only if the proof is valid.
 */
 func (zkrp *bp) Verify(proof ProofBP) (bool, error) {
-	var (
-		i      int64
-		hprime []*p256.P256
-	)
-	hprime = make([]*p256.P256, zkrp.N)
-	y, z, _ := HashBP(proof.A, proof.S)
+	// Recover x, y, z using Fiat-Shamir heuristic
 	x, _, _ := HashBP(proof.T1, proof.T2)
+	y, z, _ := HashBP(proof.A, proof.S)
 
 	// Switch generators                                                   // (64)
-	yinv := bn.ModInverse(y, ORDER)
-	expy := yinv
-	hprime[0] = zkrp.Hh[0]
-	i = 1
-	for i < zkrp.N {
-		hprime[i] = new(p256.P256).ScalarMult(zkrp.Hh[i], expy)
-		expy = bn.Multiply(expy, yinv)
-		i = i + 1
-	}
+	hprime, _ := UpdateGenerators(zkrp.Hh, y, zkrp.N)
 
 	//////////////////////////////////////////////////////////////////////////////
 	// Check that tprime  = t(x) = t0 + t1x + t2x^2  ----------  Condition (65) //
@@ -328,6 +305,25 @@ func (zkrp *bp) Verify(proof ProofBP) (bool, error) {
 	result := c65 && c67 && ok
 
 	return result, nil
+}
+
+func UpdateGenerators(Hh []*p256.P256, y *big.Int, N int64) ([]*p256.P256, error) {
+	var (
+		i int64
+	)
+	// Compute h'                                                          // (64)
+	hprime := make([]*p256.P256, N)
+	// Switch generators
+	yinv := bn.ModInverse(y, ORDER)
+	expy := yinv
+	hprime[0] = Hh[0]
+	i = 1
+	for i < N {
+		hprime[i] = new(p256.P256).ScalarMult(Hh[i], expy)
+		expy = bn.Multiply(expy, yinv)
+		i = i + 1
+	}
+	return hprime, nil
 }
 
 /*
