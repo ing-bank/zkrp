@@ -22,11 +22,15 @@ import (
 	"math/big"
 )
 
-// BUG(agl): this implementation is not constant time.
-// TODO(agl): keep GF(p²) elements in Mongomery form.
-
-// G1 is an abstract cyclic group. The zero value is suitable for use as the
-// output of an operation, but cannot be used as an input.
+/* 
+Comments:
+- This implementation is not constant time, which means that it is vulnerable
+to side channel attacks.
+- If we keep GF(p²) elements in Montgomery form, it is possible to improve
+performance.
+- G1 is an abstract cyclic group. The zero value is suitable for use as the
+output of an operation, but cannot be used as an input.
+*/
 type G1 struct {
 	p *curvePoint
 }

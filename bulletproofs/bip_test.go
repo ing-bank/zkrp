@@ -15,9 +15,7 @@ func TestInnerProduct(t *testing.T) {
 		a    []*big.Int
 		b    []*big.Int
 	)
-	// TODO:
-	// Review if it is the best way, since we maybe could use the
-	// inner product independently of the range proof.
+	// Issue #40 will decouple ZKIP from ZKRP
 	_ = zkrp.Setup(0, 16)
 
 	a = make([]*big.Int, zkrp.N)
