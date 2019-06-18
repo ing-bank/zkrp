@@ -44,7 +44,6 @@ This must be computed in a trusted setup.
 type paramsSet struct {
 	signatures map[int64]*bn256.G2
 	H          *bn256.G2
-	// TODO:must protect the private key
 	kp bbsignatures.Keypair
 	// u determines the amount of signatures we need in the public params.
 	// Each signature can be compressed to just 1 field element of 256 bits.
@@ -61,7 +60,6 @@ This must be computed in a trusted setup.
 type paramsUL struct {
 	signatures map[string]*bn256.G2
 	H          *bn256.G2
-	// TODO:must protect the private key
 	kp bbsignatures.Keypair
 	// u determines the amount of signatures we need in the public params.
 	// Each signature can be compressed to just 1 field element of 256 bits.
@@ -109,7 +107,7 @@ func SetupSet(s []int64) (paramsSet, error) {
 		sig_i, _ := bbsignatures.Sign(new(big.Int).SetInt64(int64(s[i])), p.kp.Privk)
 		p.signatures[s[i]] = sig_i
 	}
-	//TODO: protect the 'master' key
+	// Issue #12: p.H must be computed using MapToPoint method. 
 	h := intconversion.BigFromBase10("18560948149108576432482904553159745978835170526553990798435819795989606410925")
 	p.H = new(bn256.G2).ScalarBaseMult(h)
 	return p, nil
@@ -132,7 +130,7 @@ func SetupUL(u, l int64) (paramsUL, error) {
 		sig_i, _ := bbsignatures.Sign(new(big.Int).SetInt64(i), p.kp.Privk)
 		p.signatures[strconv.FormatInt(i, 10)] = sig_i
 	}
-	//TODO: protect the 'master' key
+	// Issue #12: p.H must be computed using MapToPoint method. 
 	h := intconversion.BigFromBase10("18560948149108576432482904553159745978835170526553990798435819795989606410925")
 	p.H = new(bn256.G2).ScalarBaseMult(h)
 	p.u = u
@@ -374,7 +372,6 @@ func (zkrp *ccs08) Setup(a, b int64) error {
 	p = new(params)
 	logb = math.Log(float64(b))
 	if logb != 0 {
-		// TODO: understand how to find optimal parameters
 		//u = b / int64(logb)
 		u = 57
 		if u != 0 {
