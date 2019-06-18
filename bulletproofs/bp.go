@@ -53,21 +53,7 @@ func (zkrp *bp) Setup(a, b int64) error {
 		zkrp.Gg[i], _ = p256.MapToGroup(SEEDH + "g" + string(i))
 		zkrp.Hh[i], _ = p256.MapToGroup(SEEDH + "h" + string(i))
 	}
-
-	// Setup Inner Product
-	_, setupErr := zkrp.Zkip.Setup(zkrp.H, zkrp.Gg, zkrp.Hh, new(big.Int).SetInt64(0))
-	if setupErr != nil {
-		return setupErr
-	}
 	return nil
-}
-
-func SampleRandomVector(N int64) ([]*big.Int, error) {
-	s := make([]*big.Int, N)
-	for i:=int64(0); i < N; i++ {                                                       // (45)
-		s[i], _ = rand.Int(rand.Reader, ORDER)
-	}
-	return s, nil;
 }
 
 /*
@@ -188,9 +174,11 @@ func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 	// Inner Product over (g, h', P.h^-mu, tprime)
 	hprime, _ := UpdateGenerators(zkrp.Hh, y, zkrp.N)
 
-	// Update Inner Product Proof Setup                           // (Section 4.2)
-	zkrp.Zkip.Hh = hprime
-	zkrp.Zkip.Cc = tprime
+	// Setup Inner Product (Section 4.2)
+	_, setupErr := zkrp.Zkip.Setup(zkrp.H, zkrp.Gg, hprime, tprime)
+	if setupErr != nil {
+		return proof, setupErr
+	}
 	commit := commitInnerProduct(zkrp.Gg, hprime, bl, br)
 	proofip, _ := zkrp.Zkip.Prove(bl, br, commit)
 
@@ -302,6 +290,24 @@ func (zkrp *bp) Verify(proof ProofBP) (bool, error) {
 	return result, nil
 }
 
+/*
+SampleRandomVector generates a vector composed by random big numbers.
+*/
+func SampleRandomVector(N int64) ([]*big.Int, error) {
+	s := make([]*big.Int, N)
+	for i:=int64(0); i < N; i++ {
+		s[i], _ = rand.Int(rand.Reader, ORDER)
+	}
+	return s, nil;
+}
+
+/*
+Updategenerators is responsible for computing generators in the following format:
+[h_1, h_2^(y^-1), ..., h_n^(y^(-n+1))], where [h_1, h_2, ..., h_n] is the original 
+vector of generators. This method is used both by prover and verifier. After this 
+update we have that A is a vector commitments to (aL, aR . y^n). Also S is a vector 
+commitment to (sL, sR . y^n).
+*/
 func UpdateGenerators(Hh []*p256.P256, y *big.Int, N int64) ([]*p256.P256, error) {
 	var (
 		i int64
