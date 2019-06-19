@@ -6,31 +6,28 @@ import (
 )
 
 /*
-Test Inner Product argument.
+Test Inner Product argument where <a,b>=c.
 */
 func TestInnerProduct(t *testing.T) {
 	var (
-		zkrp bp
 		zkip bip
 		a    []*big.Int
 		b    []*big.Int
 	)
-	// Issue #40 will decouple ZKIP from ZKRP
-	_ = zkrp.Setup(0, 16)
+	c := new(big.Int).SetInt64(142)
+	_, _ = zkip.Setup(nil, nil, nil, c, 4)
 
-	a = make([]*big.Int, zkrp.N)
+	a = make([]*big.Int, zkip.N)
 	a[0] = new(big.Int).SetInt64(2)
 	a[1] = new(big.Int).SetInt64(-1)
 	a[2] = new(big.Int).SetInt64(10)
 	a[3] = new(big.Int).SetInt64(6)
-	b = make([]*big.Int, zkrp.N)
+	b = make([]*big.Int, zkip.N)
 	b[0] = new(big.Int).SetInt64(1)
 	b[1] = new(big.Int).SetInt64(2)
 	b[2] = new(big.Int).SetInt64(10)
 	b[3] = new(big.Int).SetInt64(7)
-	c := new(big.Int).SetInt64(142)
-	commit := commitInnerProduct(zkrp.Gg, zkrp.Hh, a, b)
-	_, _ = zkip.Setup(zkrp.H, zkrp.Gg, zkrp.Hh, c)
+	commit := commitInnerProduct(zkip.Gg, zkip.Hh, a, b)
 
 	proof, _ := zkip.Prove(a, b, commit)
 	ok, _ := zkip.Verify(proof)

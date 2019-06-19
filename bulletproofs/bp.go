@@ -175,7 +175,7 @@ func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 	hprime, _ := UpdateGenerators(zkrp.Hh, y, zkrp.N)
 
 	// Setup Inner Product (Section 4.2)
-	_, setupErr := zkrp.Zkip.Setup(zkrp.H, zkrp.Gg, hprime, tprime)
+	_, setupErr := zkrp.Zkip.Setup(zkrp.H, zkrp.Gg, hprime, tprime, zkrp.N)
 	if setupErr != nil {
 		return proof, setupErr
 	}
