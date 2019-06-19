@@ -43,17 +43,18 @@ type ProofBP struct {
 /*
 Setup is responsible for computing the common parameters.
 */
-func (zkrp *bp) Setup(a, b int64) error {
-	zkrp.G = new(p256.P256).ScalarBaseMult(new(big.Int).SetInt64(1))
-	zkrp.H, _ = p256.MapToGroup(SEEDH)
-	zkrp.N = int64(math.Log2(float64(b)))
-	zkrp.Gg = make([]*p256.P256, zkrp.N)
-	zkrp.Hh = make([]*p256.P256, zkrp.N)
-	for i:=int64(0); i < zkrp.N; i++ {
-		zkrp.Gg[i], _ = p256.MapToGroup(SEEDH + "g" + string(i))
-		zkrp.Hh[i], _ = p256.MapToGroup(SEEDH + "h" + string(i))
+func Setup(a, b int64) (*bp, error) {
+	params := new(bp)
+	params.G = new(p256.P256).ScalarBaseMult(new(big.Int).SetInt64(1))
+	params.H, _ = p256.MapToGroup(SEEDH)
+	params.N = int64(math.Log2(float64(b)))
+	params.Gg = make([]*p256.P256, params.N)
+	params.Hh = make([]*p256.P256, params.N)
+	for i:=int64(0); i < params.N; i++ {
+		params.Gg[i], _ = p256.MapToGroup(SEEDH + "g" + string(i))
+		params.Hh[i], _ = p256.MapToGroup(SEEDH + "h" + string(i))
 	}
-	return nil
+	return params, nil
 }
 
 /*
