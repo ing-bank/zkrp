@@ -43,18 +43,39 @@ type proofBip struct {
 Setup is responsible for computing the inner product basic parameters that are common to both
 Prove and Verify algorithms.
 */
-func (zkip *bip) Setup(H *p256.P256, g, h []*p256.P256, c *big.Int) (bip, error) {
+func (zkip *bip) Setup(H *p256.P256, g, h []*p256.P256, c *big.Int, N int64) (bip, error) {
 	var (
 		params bip
 	)
 
-	zkip.Gg = make([]*p256.P256, zkip.N)
-	zkip.Hh = make([]*p256.P256, zkip.N)
-	zkip.Uu, _ = p256.MapToGroup(SEEDU)
-	zkip.H = H
-	zkip.Gg = g
-	zkip.Hh = h
+	if N <= 0 {
+		return params, errors.New("N must be greater than zero.")
+	} else {
+		zkip.N = N
+	}
+	if H == nil {
+		zkip.H, _ = p256.MapToGroup(SEEDH)
+	} else {
+		zkip.H = H
+	}
+	if g == nil {
+		zkip.Gg = make([]*p256.P256, zkip.N)
+		for i:=int64(0); i < zkip.N; i++ {
+			zkip.Gg[i], _ = p256.MapToGroup(SEEDH + "g" + string(i))
+		}
+	} else {
+		zkip.Gg = g
+	}
+	if h == nil {
+		zkip.Hh = make([]*p256.P256, zkip.N)
+		for i:=int64(0); i < zkip.N; i++ {
+			zkip.Hh[i], _ = p256.MapToGroup(SEEDH + "h" + string(i))
+		}
+	} else {
+		zkip.Hh = h
+	}
 	zkip.Cc = c
+	zkip.Uu, _ = p256.MapToGroup(SEEDU)
 	zkip.P = new(p256.P256).SetInfinity()
 
 	return params, nil
