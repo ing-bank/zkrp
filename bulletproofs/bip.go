@@ -28,6 +28,7 @@ type bip struct {
 Struct that contains the Inner Product Proof.
 */
 type proofBip struct {
+	N  int64
 	Ls []*p256.P256
 	Rs []*p256.P256
 	U  *p256.P256
@@ -36,7 +37,6 @@ type proofBip struct {
 	Hh *p256.P256
 	A  *big.Int
 	B  *big.Int
-	N  int64
 }
 
 /*
@@ -139,7 +139,7 @@ func computeBipRecursive(a, b []*big.Int, g, h []*p256.P256, u, P *p256.P256, n 
 		// recursion
 
 		// nprime := n / 2
-		nprime := n / 2                                                       // (20)
+		nprime := n / 2 // (20)
 
 		// Compute cL = < a[:n'], b[n':] >                                    // (21)
 		cL, _ = ScalarProduct(a[:nprime], b[nprime:])
@@ -210,9 +210,9 @@ func (zkip *bip) Verify(proof proofBip) (bool, error) {
 	hprime := zkip.Hh
 	Pprime := zkip.P
 	nprime := proof.N
-	for i:=int64(0); i<int64(logn); i++ {
-		nprime = nprime / 2                                                   // (20)
-		x, _, _ = HashBP(proof.Ls[i], proof.Rs[i])                            // (26)
+	for i := int64(0); i < int64(logn); i++ {
+		nprime = nprime / 2                        // (20)
+		x, _, _ = HashBP(proof.Ls[i], proof.Rs[i]) // (26)
 		xinv = bn.ModInverse(x, ORDER)
 		// Compute g' = g[:n']^(x^-1) * g[n':]^(x)                            // (29)
 		ngprime, _ = VectorScalarExp(gprime[:nprime], xinv)
@@ -253,7 +253,7 @@ func hashIP(g, h []*p256.P256, P *p256.P256, c *big.Int, n int64) (*big.Int, err
 	digest := sha256.New()
 	digest.Write([]byte(P.String()))
 
-	for i:=int64(0); i<n; i++ {
+	for i := int64(0); i < n; i++ {
 		digest.Write([]byte(g[i].String()))
 		digest.Write([]byte(h[i].String()))
 	}
@@ -286,11 +286,11 @@ VectorScalarExp computes a[i]^b for each i.
 func VectorScalarExp(a []*p256.P256, b *big.Int) ([]*p256.P256, error) {
 	var (
 		result []*p256.P256
-		n   int64
+		n      int64
 	)
 	n = int64(len(a))
 	result = make([]*p256.P256, n)
-	for i:=int64(0); i<n; i++ {
+	for i := int64(0); i < n; i++ {
 		result[i] = new(p256.P256).ScalarMult(a[i], b)
 	}
 	return result, nil

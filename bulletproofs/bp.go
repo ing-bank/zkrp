@@ -61,7 +61,7 @@ Prove computes the ZK rangeproof. The documentation and comments are based on
 eprint version of Bulletproofs papers:
 https://eprint.iacr.org/2017/1066.pdf
 */
-func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
+func (zkrp *bp) Prove(secret *big.Int) (ProofBP, *bp, error) {
 	var (
 		proof ProofBP
 	)
@@ -177,7 +177,7 @@ func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 	// Setup Inner Product (Section 4.2)
 	_, setupErr := zkrp.Zkip.Setup(zkrp.H, zkrp.Gg, hprime, tprime, zkrp.N)
 	if setupErr != nil {
-		return proof, setupErr
+		return proof, nil, setupErr
 	}
 	commit := commitInnerProduct(zkrp.Gg, hprime, bl, br)
 	proofip, _ := zkrp.Zkip.Prove(bl, br, commit)
@@ -193,26 +193,26 @@ func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 	proof.Proofip = proofip
 	proof.Commit = commit
 
-	return proof, nil
+	return proof, zkrp, nil
 }
 
 /*
 Verify returns true if and only if the proof is valid.
 */
-func (zkrp *bp) Verify(proof ProofBP) (bool, error) {
+func (zkrp *bp) Verify(proof ProofBP, params *bp) (bool, error) {
 	// Recover x, y, z using Fiat-Shamir heuristic
 	x, _, _ := HashBP(proof.T1, proof.T2)
 	y, z, _ := HashBP(proof.A, proof.S)
 
 	// Switch generators                                                   // (64)
-	hprime, _ := UpdateGenerators(zkrp.Hh, y, zkrp.N)
+	hprime, _ := UpdateGenerators(params.Hh, y, params.N)
 
 	//////////////////////////////////////////////////////////////////////////////
 	// Check that tprime  = t(x) = t0 + t1x + t2x^2  ----------  Condition (65) //
 	//////////////////////////////////////////////////////////////////////////////
 
 	// Compute left hand side
-	lhs, _ := CommitG1(proof.Tprime, proof.Taux, zkrp.H)
+	lhs, _ := CommitG1(proof.Tprime, proof.Taux, params.H)
 
 	// Compute right hand side
 	z2 := bn.Multiply(z, z)
@@ -222,7 +222,7 @@ func (zkrp *bp) Verify(proof ProofBP) (bool, error) {
 
 	rhs := new(p256.P256).ScalarMult(proof.V, z2)
 
-	delta := zkrp.delta(y, z)
+	delta := params.delta(y, z)
 
 	gdelta := new(p256.P256).ScalarBaseMult(delta)
 
@@ -248,15 +248,15 @@ func (zkrp *bp) Verify(proof ProofBP) (bool, error) {
 
 	// g^-z
 	mz := bn.Sub(ORDER, z)
-	vmz, _ := VectorCopy(mz, zkrp.N)
-	gpmz, _ := VectorExp(zkrp.Gg, vmz)
+	vmz, _ := VectorCopy(mz, params.N)
+	gpmz, _ := VectorExp(params.Gg, vmz)
 
 	// z.y^n
-	vz, _ := VectorCopy(z, zkrp.N)
-	vy := powerOf(y, zkrp.N)
+	vz, _ := VectorCopy(z, params.N)
+	vy := powerOf(y, params.N)
 	zyn, _ := VectorMul(vy, vz)
 
-	p2n := powerOf(new(big.Int).SetInt64(2), zkrp.N)
+	p2n := powerOf(new(big.Int).SetInt64(2), params.N)
 	zsquared := bn.Multiply(z, z)
 	z22n, _ := VectorScalarMul(p2n, zsquared)
 
@@ -274,7 +274,7 @@ func (zkrp *bp) Verify(proof ProofBP) (bool, error) {
 	// Compute P - rhs  #################### Condition (67) ######################
 
 	// h^mu
-	rP := new(p256.P256).ScalarMult(zkrp.H, proof.Mu)
+	rP := new(p256.P256).ScalarMult(params.H, proof.Mu)
 	rP.Multiply(rP, proof.Commit)
 
 	// Subtract lhs and rhs and compare with poitn at infinity
@@ -283,7 +283,7 @@ func (zkrp *bp) Verify(proof ProofBP) (bool, error) {
 	c67 := rP.IsZero()
 
 	// Verify Inner Product Proof ################################################
-	ok, _ := zkrp.Zkip.Verify(proof.Proofip)
+	ok, _ := params.Zkip.Verify(proof.Proofip)
 
 	result := c65 && c67 && ok
 
