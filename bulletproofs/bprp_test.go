@@ -17,7 +17,7 @@ func TestTrueGenericBulletproofsZKRP(t *testing.T) {
         //X = 19 
         secret, _ := new(big.Int).SetString("19", 10)
 
-        _ = zkrp.Setup(18, 200) // ITS BEING USED TO COMPUTE N
+        _ = zkrp.Setup(18, 200)
         proof, _ := zkrp.Prove(secret)
         ok, _ := zkrp.Verify(proof)
 
@@ -27,9 +27,10 @@ func TestTrueGenericBulletproofsZKRP(t *testing.T) {
 }
 
 /*
-Test the FALSE case of Generic ZK Range Proof scheme using Bulletproofs.
+Test the FALSE case where secret is greater than B of Generic ZK Range 
+Proof scheme using Bulletproofs.
 */
-func TestFalseGenericBulletproofsZKRP(t *testing.T) {
+func TestFalseGreaterThanGenericBulletproofsZKRP(t *testing.T) {
         var (
                 zkrp bprp
         )
@@ -38,7 +39,7 @@ func TestFalseGenericBulletproofsZKRP(t *testing.T) {
         //X = 201
         secret, _ := new(big.Int).SetString("201", 10)
 
-        _ = zkrp.Setup(18, 200) // ITS BEING USED TO COMPUTE N
+        _ = zkrp.Setup(18, 200) 
         proof, _ := zkrp.Prove(secret)
         ok, _ := zkrp.Verify(proof)
 
@@ -47,3 +48,24 @@ func TestFalseGenericBulletproofsZKRP(t *testing.T) {
         }
 }
 
+/*
+Test the FALSE case where secret is less than A of Generic ZK Range 
+Proof scheme using Bulletproofs.
+*/
+func TestFalseLessThanGenericBulletproofsZKRP(t *testing.T) {
+        var (
+                zkrp bprp
+        )
+        //A = 18
+        //B = 200
+        //X = 17
+        secret, _ := new(big.Int).SetString("17", 10)
+
+        _ = zkrp.Setup(18, 200)
+        proof, _ := zkrp.Prove(secret)
+        ok, _ := zkrp.Verify(proof)
+
+        if ok != false {
+                t.Errorf("Assert failure: expected false, actual: %t", ok)
+        }
+}
