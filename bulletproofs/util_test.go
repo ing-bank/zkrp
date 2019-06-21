@@ -2,6 +2,7 @@ package bulletproofs
 
 import (
 	"github.com/mvdbos/zkpsdk/crypto/p256"
+	"github.com/stretchr/testify/assert"
 	"math"
 	"math/big"
 	"testing"
@@ -82,4 +83,24 @@ func TestIsPowerOfTwo(t *testing.T) {
 	if !ok {
 		t.Errorf("Assert failure: expected true, actual: %t", ok)
 	}
+}
+
+func TestBulletProof_MarshalJSON(t *testing.T) {
+	t.SkipNow() //TODO: make this work. Marshalling is broken
+
+	params, _ := Setup(MAX_RANGE_END)
+	proof, _ := Prove(new(big.Int).SetInt64(18), params)
+	json, _ := proof.MarshalJSON()
+	var newProof BulletProof
+	_ = newProof.UnmarshalJSON(json)
+	assert.Equal(t, proof, newProof, "should be equal")
+}
+
+func TestBulletProofSetupParams_MarshalJSON(t *testing.T) {
+	params, _ := Setup(MAX_RANGE_END)
+	proof, _ := Prove(new(big.Int).SetInt64(18), params)
+	json, _ := proof.Params.MarshalJSON()
+	var newParams BulletProofSetupParams
+	_ = newParams.UnmarshalJSON(json)
+	assert.Equal(t, proof.Params, newParams, "should be equal")
 }
