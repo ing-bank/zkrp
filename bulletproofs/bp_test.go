@@ -1,66 +1,72 @@
 package bulletproofs
 
 import (
+	"math"
 	"math/big"
 	"testing"
 )
 
-/*
-Test the TRUE case of ZK Range Proof scheme using Bulletproofs.
-*/
-//TODO: Make this test successful
-//func TestExtractedFailBulletproofsZKRP(t *testing.T) {
-//	params, _ := Setup(65536, 4294967296)
-//
-//	x := new(big.Int).SetInt64(65535)
-//	proof, _ := Prove(x, params)
-//
-//	json, _ := proof.MarshalJSON()
-//
-//	proofForVerifier := new(ProofBP)
-//	_ = proofForVerifier.UnmarshalJSON(json)
-//
-//	ok, _ := proofForVerifier.Verify()
-//
-//	if ok == true {
-//		t.Errorf("Assert failure: expected false, actual: %t", ok)
-//	}
-//}
+func TestXEqualsRangeStart(t *testing.T) {
+	rangeEnd := int64(math.Pow(2, 32))
+	x := new(big.Int).SetInt64(0)
 
-/*
-Test the TRUE case of ZK Range Proof scheme using Bulletproofs.
-*/
-func TestExtractedTrueBulletproofsZKRP(t *testing.T) {
-	params, _ := Setup(0, 4294967296)
-
-	x := new(big.Int).SetInt64(65535)
-	proof, _ := Prove(x, params)
-
-	json, _ := proof.MarshalJSON()
-
-	proofForVerifier := new(ProofBP)
-	_ = proofForVerifier.UnmarshalJSON(json)
-
-	ok, _ := proofForVerifier.Verify()
-
-	if ok != true {
-		t.Errorf("Assert failure: expected true, actual: %t", ok)
+	params := setupRange(t, rangeEnd)
+	if proveAndVerifyRange(x, params) != true {
+		t.Errorf("x equal to range start should verify successfully")
 	}
 }
 
+func TestXLowerThanRangeStart(t *testing.T) {
+	rangeEnd := int64(math.Pow(2, 32))
+	x := new(big.Int).SetInt64(-1)
 
-//TODO: fix this for new interfaces, take out of normal test run
-//func BenchmarkBulletproofs(b *testing.B) {
-//	b.ResetTimer()
-//	for i := 0; i < b.N; i++ {
-//		zkrp, _ := Setup(0, 4294967296) // ITS BEING USED TO COMPUTE N
-//
-//		x := new(big.Int).SetInt64(4294967295)
-//		proof, params, _ := zkrp.Prove(x)
-//		ok, _ := zkrp.Verify(proof, params)
-//
-//		if ok != true {
-//			b.Errorf("Assert failure: expected true, actual: %t", ok)
-//		}
-//	}
-//}
+	params := setupRange(t, rangeEnd)
+	if proveAndVerifyRange(x, params) == true {
+		t.Errorf("x lower than range start should not verify")
+	}
+}
+
+func TestXHigherThanRangeEnd(t *testing.T) {
+	rangeEnd := int64(math.Pow(2, 32))
+	x := new(big.Int).SetInt64(rangeEnd + 1)
+
+	params := setupRange(t, rangeEnd)
+	if proveAndVerifyRange(x, params) == true {
+		t.Errorf("x higher than range end should not verify")
+	}
+}
+
+func TestXEqualToRangeEnd(t *testing.T) {
+	rangeEnd := int64(math.Pow(2, 32))
+	x := new(big.Int).SetInt64(rangeEnd)
+
+	params := setupRange(t, rangeEnd)
+	if proveAndVerifyRange(x, params) == true {
+		t.Errorf("x equal to range end should not verify")
+	}
+}
+
+func TestXWithinRange(t *testing.T) {
+	rangeEnd := int64(math.Pow(2, 32))
+	x := new(big.Int).SetInt64(3)
+
+	params := setupRange(t, rangeEnd)
+	if proveAndVerifyRange(x, params) != true {
+		t.Errorf("x within range should verify successfully")
+	}
+}
+
+func setupRange(t *testing.T, rangeEnd int64) BulletProofSetupParams {
+	params, err := Setup(rangeEnd)
+	if err != nil {
+		t.Errorf("Invalid range end: %s", err)
+		t.FailNow()
+	}
+	return params
+}
+
+func proveAndVerifyRange(x *big.Int, params BulletProofSetupParams) bool {
+	proof, _ := Prove(x, params)
+	ok, _ := proof.Verify()
+	return ok
+}

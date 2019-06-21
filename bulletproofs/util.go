@@ -28,18 +28,18 @@ type ipstring struct {
 	Rs []pstring
 }
 
-func (p *ProofBP) MarshalJSON() ([]byte, error) {
-	type Alias ProofBP
+func (p *BulletProof) MarshalJSON() ([]byte, error) {
+	type Alias BulletProof
 	var iLs []pstring
 	var iRs []pstring
 	var i int
-	logn := len(p.Proofip.Ls)
+	logn := len(p.InnerProductProof.Ls)
 	iLs = make([]pstring, logn)
 	iRs = make([]pstring, logn)
 	i = 0
 	for i < logn {
-		iLs[i] = pstring{X: p.Proofip.Ls[i].X.String(), Y: p.Proofip.Ls[i].Y.String()}
-		iRs[i] = pstring{X: p.Proofip.Rs[i].X.String(), Y: p.Proofip.Rs[i].Y.String()}
+		iLs[i] = pstring{X: p.InnerProductProof.Ls[i].X.String(), Y: p.InnerProductProof.Ls[i].Y.String()}
+		iRs[i] = pstring{X: p.InnerProductProof.Rs[i].X.String(), Y: p.InnerProductProof.Rs[i].Y.String()}
 		i = i + 1
 	}
 	return json.Marshal(&struct {
@@ -52,7 +52,7 @@ func (p *ProofBP) MarshalJSON() ([]byte, error) {
 		Mu      string   `json:"Mu"`
 		Tprime  string   `json:"Tprime"`
 		Commit  pstring  `json:"Commit"`
-		Proofip ipstring `json:"Proofip"`
+		Proofip ipstring `json:"InnerProductProof"`
 		*Alias
 	}{
 		V:      pstring{X: p.V.X.String(), Y: p.V.Y.String()},
@@ -65,13 +65,13 @@ func (p *ProofBP) MarshalJSON() ([]byte, error) {
 		Tprime: p.Tprime.String(),
 		Commit: pstring{X: p.Commit.X.String(), Y: p.Commit.Y.String()},
 		Proofip: ipstring{
-			N:  p.Proofip.N,
-			A:  p.Proofip.A.String(),
-			B:  p.Proofip.B.String(),
-			U:  pstring{X: p.Proofip.U.X.String(), Y: p.Proofip.U.Y.String()},
-			P:  pstring{X: p.Proofip.P.X.String(), Y: p.Proofip.P.Y.String()},
-			Gg: pstring{X: p.Proofip.Gg.X.String(), Y: p.Proofip.Gg.Y.String()},
-			Hh: pstring{X: p.Proofip.Hh.X.String(), Y: p.Proofip.Hh.Y.String()},
+			N:  p.InnerProductProof.N,
+			A:  p.InnerProductProof.A.String(),
+			B:  p.InnerProductProof.B.String(),
+			U:  pstring{X: p.InnerProductProof.U.X.String(), Y: p.InnerProductProof.U.Y.String()},
+			P:  pstring{X: p.InnerProductProof.P.X.String(), Y: p.InnerProductProof.P.Y.String()},
+			Gg: pstring{X: p.InnerProductProof.Gg.X.String(), Y: p.InnerProductProof.Gg.Y.String()},
+			Hh: pstring{X: p.InnerProductProof.Hh.X.String(), Y: p.InnerProductProof.Hh.Y.String()},
 			Ls: iLs,
 			Rs: iRs,
 		},
@@ -79,8 +79,8 @@ func (p *ProofBP) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (p *ProofBP) UnmarshalJSON(data []byte) error {
-	type Alias ProofBP
+func (p *BulletProof) UnmarshalJSON(data []byte) error {
+	type Alias BulletProof
 	aux := &struct {
 		V       pstring  `json:"V"`
 		A       pstring  `json:"A"`
@@ -91,7 +91,7 @@ func (p *ProofBP) UnmarshalJSON(data []byte) error {
 		Mu      string   `json:"Mu"`
 		Tprime  string   `json:"Tprime"`
 		Commit  pstring  `json:"Commit"`
-		Proofip ipstring `json:"Proofip"`
+		Proofip ipstring `json:"InnerProductProof"`
 		*Alias
 	}{
 		Alias: (*Alias)(p),
@@ -186,7 +186,7 @@ func (p *ProofBP) UnmarshalJSON(data []byte) error {
 		i = i + 1
 	}
 
-	p.Proofip = proofBip{
+	p.InnerProductProof = InnerProductProof{
 		N:  valN,
 		A:  valA,
 		B:  valB,
@@ -210,8 +210,8 @@ type ipgenstring struct {
 	P  pstring
 }
 
-func (zkrp *bp) MarshalJSON() ([]byte, error) {
-	type Alias bp
+func (zkrp *BulletProofSetupParams) MarshalJSON() ([]byte, error) {
+	type Alias BulletProofSetupParams
 	var iHh []pstring
 	var iGg []pstring
 
@@ -221,31 +221,31 @@ func (zkrp *bp) MarshalJSON() ([]byte, error) {
 	iHh = make([]pstring, n)
 	i = 0
 	for i < n {
-		iGg[i] = pstring{X: zkrp.Zkip.Gg[i].X.String(), Y: zkrp.Zkip.Gg[i].Y.String()}
-		iHh[i] = pstring{X: zkrp.Zkip.Hh[i].X.String(), Y: zkrp.Zkip.Hh[i].Y.String()}
+		iGg[i] = pstring{X: zkrp.InnerProductParams.Gg[i].X.String(), Y: zkrp.InnerProductParams.Gg[i].Y.String()}
+		iHh[i] = pstring{X: zkrp.InnerProductParams.Hh[i].X.String(), Y: zkrp.InnerProductParams.Hh[i].Y.String()}
 		i = i + 1
 	}
 	return json.Marshal(&struct {
-		Zkip ipgenstring `json:"Zkip"`
+		Zkip ipgenstring `json:"InnerProductParams"`
 		*Alias
 	}{
 		Zkip: ipgenstring{
 			N:  zkrp.N,
-			Cc: zkrp.Zkip.Cc.String(),
-			Uu: pstring{X: zkrp.Zkip.Uu.X.String(), Y: zkrp.Zkip.Uu.Y.String()},
-			H:  pstring{X: zkrp.Zkip.H.X.String(), Y: zkrp.Zkip.H.Y.String()},
+			Cc: zkrp.InnerProductParams.Cc.String(),
+			Uu: pstring{X: zkrp.InnerProductParams.Uu.X.String(), Y: zkrp.InnerProductParams.Uu.Y.String()},
+			H:  pstring{X: zkrp.InnerProductParams.H.X.String(), Y: zkrp.InnerProductParams.H.Y.String()},
 			Gg: iGg,
 			Hh: iHh,
-			P:  pstring{X: zkrp.Zkip.P.X.String(), Y: zkrp.Zkip.P.Y.String()},
+			P:  pstring{X: zkrp.InnerProductParams.P.X.String(), Y: zkrp.InnerProductParams.P.Y.String()},
 		},
 		Alias: (*Alias)(zkrp),
 	})
 }
 
-func (zkrp *bp) UnmarshalJSON(data []byte) error {
-	type Alias bp
+func (zkrp *BulletProofSetupParams) UnmarshalJSON(data []byte) error {
+	type Alias BulletProofSetupParams
 	aux := &struct {
-		Zkip ipgenstring `json:"Zkip"`
+		Zkip ipgenstring `json:"InnerProductParams"`
 		*Alias
 	}{
 		Alias: (*Alias)(zkrp),
@@ -293,7 +293,7 @@ func (zkrp *bp) UnmarshalJSON(data []byte) error {
 		X: valPx,
 		Y: valPy,
 	}
-	zkrp.Zkip = bip{
+	zkrp.InnerProductParams = InnerProductParams{
 		N:  valN,
 		Cc: valCc,
 		Uu: valUu,
@@ -400,4 +400,12 @@ func ScalarProduct(a, b []*big.Int) (*big.Int, error) {
 		i = i + 1
 	}
 	return result, nil
+}
+
+/*
+IsPowerOfTwo returns true for arguments that are a power of 2, false otherwise.
+https://stackoverflow.com/a/600306/844313
+*/
+func IsPowerOfTwo(x int64) bool {
+	return (x != 0) && ((x & (x - 1)) == 0)
 }

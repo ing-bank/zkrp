@@ -2,6 +2,7 @@ package bulletproofs
 
 import (
 	"github.com/mvdbos/zkpsdk/crypto/p256"
+	"math"
 	"math/big"
 	"testing"
 )
@@ -75,4 +76,10 @@ func TestScalarProduct(t *testing.T) {
 	}
 }
 
-
+func TestIsPowerOfTwo(t *testing.T) {
+	power := int64(math.Pow(2, 16))
+	ok := IsPowerOfTwo(power) && !IsPowerOfTwo(power + 1)
+	if !ok {
+		t.Errorf("Assert failure: expected true, actual: %t", ok)
+	}
+}

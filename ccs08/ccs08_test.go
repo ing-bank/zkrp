@@ -106,7 +106,7 @@ func TestZKRP_UL(t *testing.T) {
 }
 
 /*
-Tests if the Setup algorithm is rejecting wrong input as expected.
+Tests if the SetupInnerProduct algorithm is rejecting wrong input as expected.
 */
 func TestZKRPSetupInput(t *testing.T) {
 	var (

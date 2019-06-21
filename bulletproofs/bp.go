@@ -3,6 +3,7 @@ package bulletproofs
 import (
 	"crypto/rand"
 	"errors"
+	"fmt"
 	"github.com/mvdbos/zkpsdk/crypto/p256"
 	. "github.com/mvdbos/zkpsdk/util"
 	"github.com/mvdbos/zkpsdk/util/bn"
@@ -10,45 +11,49 @@ import (
 	"math/big"
 )
 
-var SEEDH = "BulletproofsDoesNotNeedTrustedSetupH"
+type BulletProofSetupParams struct {
+	N                  int64
+	G                  *p256.P256
+	H                  *p256.P256
+	Gg                 []*p256.P256
+	Hh                 []*p256.P256
+	InnerProductParams InnerProductParams
+}
 
-/*
-Bulletproofs parameters.
-*/
-type bp struct {
-	N    int64
-	G    *p256.P256
-	H    *p256.P256
-	Gg   []*p256.P256
-	Hh   []*p256.P256
-	Zkip bip
+type BulletProof struct {
+	V                 *p256.P256
+	A                 *p256.P256
+	S                 *p256.P256
+	T1                *p256.P256
+	T2                *p256.P256
+	Taux              *big.Int
+	Mu                *big.Int
+	Tprime            *big.Int
+	InnerProductProof InnerProductProof
+	Commit            *p256.P256
+	Params            BulletProofSetupParams
 }
 
 /*
-Bulletproofs proof.
+SetupInnerProduct is responsible for computing the common parameters.
+Only works for ranges to 0 to 2^n, where n is a power of 2 and n <= 32
+TODO: allow n > 32 (need uint64 for that)
 */
-type ProofBP struct {
-	V       *p256.P256
-	A       *p256.P256
-	S       *p256.P256
-	T1      *p256.P256
-	T2      *p256.P256
-	Taux    *big.Int
-	Mu      *big.Int
-	Tprime  *big.Int
-	Proofip proofBip
-	Commit  *p256.P256
-	Params  *bp
-}
+func Setup(b int64) (BulletProofSetupParams, error) {
+	if !IsPowerOfTwo(b) {
+		return BulletProofSetupParams{}, errors.New("range end is not a power of 2")
+	}
 
-/*
-Setup is responsible for computing the common parameters.
-*/
-func Setup(a, b int64) (*bp, error) {
-	params := new(bp)
+	params := BulletProofSetupParams{}
 	params.G = new(p256.P256).ScalarBaseMult(new(big.Int).SetInt64(1))
 	params.H, _ = p256.MapToGroup(SEEDH)
 	params.N = int64(math.Log2(float64(b)))
+	if !IsPowerOfTwo(params.N) {
+		return BulletProofSetupParams{}, fmt.Errorf("range end is a power of 2, but it's exponent should also be. Exponent: %d", params.N)
+	}
+	if params.N > 32 {
+		return BulletProofSetupParams{}, errors.New("range end can not be greater than 2**32")
+	}
 	params.Gg = make([]*p256.P256, params.N)
 	params.Hh = make([]*p256.P256, params.N)
 	for i := int64(0); i < params.N; i++ {
@@ -63,9 +68,9 @@ Prove computes the ZK rangeproof. The documentation and comments are based on
 eprint version of Bulletproofs papers:
 https://eprint.iacr.org/2017/1066.pdf
 */
-func Prove(secret *big.Int, params *bp) (ProofBP, error) {
+func Prove(secret *big.Int, params BulletProofSetupParams) (BulletProof, error) {
 	var (
-		proof ProofBP
+		proof BulletProof
 	)
 	//////////////////////////////////////////////////////////////////////////////
 	// First phase: page 19
@@ -82,8 +87,8 @@ func Prove(secret *big.Int, params *bp) (ProofBP, error) {
 	A := commitVector(aL, aR, alpha, params.H, params.Gg, params.Hh, params.N) // (44)
 
 	// sL, sR and commitment: (S, rho)                                     // (45)
-	sL, _ := SampleRandomVector(params.N)
-	sR, _ := SampleRandomVector(params.N)
+	sL := sampleRandomVector(params.N)
+	sR := sampleRandomVector(params.N)
 	rho, _ := rand.Int(rand.Reader, ORDER)                                      // (46)
 	S := commitVectorBig(sL, sR, rho, params.H, params.Gg, params.Hh, params.N) // (47)
 
@@ -174,15 +179,16 @@ func Prove(secret *big.Int, params *bp) (ProofBP, error) {
 	mu = bn.Mod(mu, ORDER)
 
 	// Inner Product over (g, h', P.h^-mu, tprime)
-	hprime, _ := UpdateGenerators(params.Hh, y, params.N)
+	hprime := updateGenerators(params.Hh, y, params.N)
 
-	// Setup Inner Product (Section 4.2)
-	_, setupErr := params.Zkip.Setup(params.H, params.Gg, hprime, tprime, params.N)
+	// SetupInnerProduct Inner Product (Section 4.2)
+	var setupErr error
+	params.InnerProductParams, setupErr = setupInnerProduct(params.H, params.Gg, hprime, tprime, params.N)
 	if setupErr != nil {
 		return proof, setupErr
 	}
 	commit := commitInnerProduct(params.Gg, hprime, bl, br)
-	proofip, _ := params.Zkip.Prove(bl, br, commit)
+	proofip, _ := proveInnerProduct(bl, br, commit, params.InnerProductParams)
 
 	proof.V = V
 	proof.A = A
@@ -192,7 +198,7 @@ func Prove(secret *big.Int, params *bp) (ProofBP, error) {
 	proof.Taux = taux
 	proof.Mu = mu
 	proof.Tprime = tprime
-	proof.Proofip = proofip
+	proof.InnerProductProof = proofip
 	proof.Commit = commit
 	proof.Params = params
 
@@ -202,14 +208,14 @@ func Prove(secret *big.Int, params *bp) (ProofBP, error) {
 /*
 Verify returns true if and only if the proof is valid.
 */
-func (proof *ProofBP) Verify() (bool, error) {
+func (proof *BulletProof) Verify() (bool, error) {
 	params := proof.Params
 	// Recover x, y, z using Fiat-Shamir heuristic
 	x, _, _ := HashBP(proof.T1, proof.T2)
 	y, z, _ := HashBP(proof.A, proof.S)
 
 	// Switch generators                                                   // (64)
-	hprime, _ := UpdateGenerators(params.Hh, y, params.N)
+	hprime := updateGenerators(params.Hh, y, params.N)
 
 	//////////////////////////////////////////////////////////////////////////////
 	// Check that tprime  = t(x) = t0 + t1x + t2x^2  ----------  Condition (65) //
@@ -287,7 +293,7 @@ func (proof *ProofBP) Verify() (bool, error) {
 	c67 := rP.IsZero()
 
 	// Verify Inner Product Proof ################################################
-	ok, _ := params.Zkip.Verify(proof.Proofip)
+	ok, _ := proof.InnerProductProof.Verify()
 
 	result := c65 && c67 && ok
 
@@ -297,22 +303,22 @@ func (proof *ProofBP) Verify() (bool, error) {
 /*
 SampleRandomVector generates a vector composed by random big numbers.
 */
-func SampleRandomVector(N int64) ([]*big.Int, error) {
+func sampleRandomVector(N int64) []*big.Int {
 	s := make([]*big.Int, N)
 	for i := int64(0); i < N; i++ {
 		s[i], _ = rand.Int(rand.Reader, ORDER)
 	}
-	return s, nil;
+	return s
 }
 
 /*
-Updategenerators is responsible for computing generators in the following format:
+updateGenerators is responsible for computing generators in the following format:
 [h_1, h_2^(y^-1), ..., h_n^(y^(-n+1))], where [h_1, h_2, ..., h_n] is the original
 vector of generators. This method is used both by prover and verifier. After this
 update we have that A is a vector commitments to (aL, aR . y^n). Also S is a vector
 commitment to (sL, sR . y^n).
 */
-func UpdateGenerators(Hh []*p256.P256, y *big.Int, N int64) ([]*p256.P256, error) {
+func updateGenerators(Hh []*p256.P256, y *big.Int, N int64) []*p256.P256 {
 	var (
 		i int64
 	)
@@ -328,7 +334,7 @@ func UpdateGenerators(Hh []*p256.P256, y *big.Int, N int64) ([]*p256.P256, error
 		expy = bn.Multiply(expy, yinv)
 		i = i + 1
 	}
-	return hprime, nil
+	return hprime
 }
 
 /*
@@ -376,7 +382,7 @@ func commitVector(aL, aR []int64, alpha *big.Int, H *p256.P256, g, h []*p256.P25
 /*
 delta(y,z) = (z-z^2) . < 1^n, y^n > - z^3 . < 1^n, 2^n >
 */
-func (zkrp *bp) delta(y, z *big.Int) *big.Int {
+func (params *BulletProofSetupParams) delta(y, z *big.Int) *big.Int {
 	var (
 		result *big.Int
 	)
@@ -387,12 +393,12 @@ func (zkrp *bp) delta(y, z *big.Int) *big.Int {
 	z3 = bn.Mod(z3, ORDER)
 
 	// < 1^n, y^n >
-	v1, _ := VectorCopy(new(big.Int).SetInt64(1), zkrp.N)
-	vy := powerOf(y, zkrp.N)
+	v1, _ := VectorCopy(new(big.Int).SetInt64(1), params.N)
+	vy := powerOf(y, params.N)
 	sp1y, _ := ScalarProduct(v1, vy)
 
 	// < 1^n, 2^n >
-	p2n := powerOf(new(big.Int).SetInt64(2), zkrp.N)
+	p2n := powerOf(new(big.Int).SetInt64(2), params.N)
 	sp12, _ := ScalarProduct(v1, p2n)
 
 	result = bn.Sub(z, z2)

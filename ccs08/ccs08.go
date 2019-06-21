@@ -44,7 +44,7 @@ This must be computed in a trusted setup.
 type paramsSet struct {
 	signatures map[int64]*bn256.G2
 	H          *bn256.G2
-	kp bbsignatures.Keypair
+	kp         bbsignatures.Keypair
 	// u determines the amount of signatures we need in the public params.
 	// Each signature can be compressed to just 1 field element of 256 bits.
 	// Then the parameters have minimum size equal to 256*u bits.
@@ -60,7 +60,7 @@ This must be computed in a trusted setup.
 type paramsUL struct {
 	signatures map[string]*bn256.G2
 	H          *bn256.G2
-	kp bbsignatures.Keypair
+	kp         bbsignatures.Keypair
 	// u determines the amount of signatures we need in the public params.
 	// Each signature can be compressed to just 1 field element of 256 bits.
 	// Then the parameters have minimum size equal to 256*u bits.
@@ -356,7 +356,7 @@ type ccs08 struct {
 }
 
 /*
-Setup receives integers a and b, and configures the parameters for the rangeproof scheme.
+SetupInnerProduct receives integers a and b, and configures the parameters for the rangeproof scheme.
 */
 func (zkrp *ccs08) Setup(a, b int64) error {
 	// Compute optimal values for u and l
