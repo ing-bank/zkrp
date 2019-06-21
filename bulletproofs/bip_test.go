@@ -10,27 +10,27 @@ Test Inner Product argument where <a,b>=c.
 */
 func TestInnerProduct(t *testing.T) {
 	var (
-		zkip bip
-		a    []*big.Int
-		b    []*big.Int
+		innerProductParams InnerProductParams
+		a                  []*big.Int
+		b                  []*big.Int
 	)
 	c := new(big.Int).SetInt64(142)
-	_, _ = zkip.Setup(nil, nil, nil, c, 4)
+	innerProductParams, _ = setupInnerProduct(nil, nil, nil, c, 4)
 
-	a = make([]*big.Int, zkip.N)
+	a = make([]*big.Int, innerProductParams.N)
 	a[0] = new(big.Int).SetInt64(2)
 	a[1] = new(big.Int).SetInt64(-1)
 	a[2] = new(big.Int).SetInt64(10)
 	a[3] = new(big.Int).SetInt64(6)
-	b = make([]*big.Int, zkip.N)
+	b = make([]*big.Int, innerProductParams.N)
 	b[0] = new(big.Int).SetInt64(1)
 	b[1] = new(big.Int).SetInt64(2)
 	b[2] = new(big.Int).SetInt64(10)
 	b[3] = new(big.Int).SetInt64(7)
-	commit := commitInnerProduct(zkip.Gg, zkip.Hh, a, b)
+	commit := commitInnerProduct(innerProductParams.Gg, innerProductParams.Hh, a, b)
 
-	proof, _ := zkip.Prove(a, b, commit)
-	ok, _ := zkip.Verify(proof)
+	proof, _ := proveInnerProduct(a, b, commit, innerProductParams)
+	ok, _ := proof.Verify()
 	if ok != true {
 		t.Errorf("Assert failure: expected true, actual: %t", ok)
 	}

@@ -25,7 +25,7 @@ package zkpsdk
 
 //type izkrp interface {
 //	//Commit()
-//	Setup(a, b int64)
+//	SetupInnerProduct(a, b int64)
 //	Prove()
 //	Verify() (bool, error)
 //}

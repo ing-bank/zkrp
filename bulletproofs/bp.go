@@ -3,6 +3,7 @@ package bulletproofs
 import (
 	"crypto/rand"
 	"errors"
+	"fmt"
 	"github.com/mvdbos/zkpsdk/crypto/p256"
 	. "github.com/mvdbos/zkpsdk/util"
 	"github.com/mvdbos/zkpsdk/util/bn"
@@ -10,50 +11,56 @@ import (
 	"math/big"
 )
 
-var SEEDH = "BulletproofsDoesNotNeedTrustedSetupH"
+type BulletProofSetupParams struct {
+	N                  int64
+	G                  *p256.P256
+	H                  *p256.P256
+	Gg                 []*p256.P256
+	Hh                 []*p256.P256
+	InnerProductParams InnerProductParams
+}
 
-/*
-Bulletproofs parameters.
-*/
-type bp struct {
-	N    int64
-	G    *p256.P256
-	H    *p256.P256
-	Gg   []*p256.P256
-	Hh   []*p256.P256
-	Zkip bip
+type BulletProof struct {
+	V                 *p256.P256
+	A                 *p256.P256
+	S                 *p256.P256
+	T1                *p256.P256
+	T2                *p256.P256
+	Taux              *big.Int
+	Mu                *big.Int
+	Tprime            *big.Int
+	InnerProductProof InnerProductProof
+	Commit            *p256.P256
+	Params            BulletProofSetupParams
 }
 
 /*
-Bulletproofs proof.
+SetupInnerProduct is responsible for computing the common parameters.
+Only works for ranges to 0 to 2^n, where n is a power of 2 and n <= 32
+TODO: allow n > 32 (need uint64 for that)
 */
-type ProofBP struct {
-	V       *p256.P256
-	A       *p256.P256
-	S       *p256.P256
-	T1      *p256.P256
-	T2      *p256.P256
-	Taux    *big.Int
-	Mu      *big.Int
-	Tprime  *big.Int
-	Proofip proofBip
-	Commit  *p256.P256
-}
-
-/*
-Setup is responsible for computing the common parameters.
-*/
-func (zkrp *bp) Setup(a, b int64) error {
-	zkrp.G = new(p256.P256).ScalarBaseMult(new(big.Int).SetInt64(1))
-	zkrp.H, _ = p256.MapToGroup(SEEDH)
-	zkrp.N = int64(math.Log2(float64(b)))
-	zkrp.Gg = make([]*p256.P256, zkrp.N)
-	zkrp.Hh = make([]*p256.P256, zkrp.N)
-	for i:=int64(0); i < zkrp.N; i++ {
-		zkrp.Gg[i], _ = p256.MapToGroup(SEEDH + "g" + string(i))
-		zkrp.Hh[i], _ = p256.MapToGroup(SEEDH + "h" + string(i))
+func Setup(b int64) (BulletProofSetupParams, error) {
+	if !IsPowerOfTwo(b) {
+		return BulletProofSetupParams{}, errors.New("range end is not a power of 2")
 	}
-	return nil
+
+	params := BulletProofSetupParams{}
+	params.G = new(p256.P256).ScalarBaseMult(new(big.Int).SetInt64(1))
+	params.H, _ = p256.MapToGroup(SEEDH)
+	params.N = int64(math.Log2(float64(b)))
+	if !IsPowerOfTwo(params.N) {
+		return BulletProofSetupParams{}, fmt.Errorf("range end is a power of 2, but it's exponent should also be. Exponent: %d", params.N)
+	}
+	if params.N > 32 {
+		return BulletProofSetupParams{}, errors.New("range end can not be greater than 2**32")
+	}
+	params.Gg = make([]*p256.P256, params.N)
+	params.Hh = make([]*p256.P256, params.N)
+	for i := int64(0); i < params.N; i++ {
+		params.Gg[i], _ = p256.MapToGroup(SEEDH + "g" + string(i))
+		params.Hh[i], _ = p256.MapToGroup(SEEDH + "h" + string(i))
+	}
+	return params, nil
 }
 
 /*
@@ -61,9 +68,9 @@ Prove computes the ZK rangeproof. The documentation and comments are based on
 eprint version of Bulletproofs papers:
 https://eprint.iacr.org/2017/1066.pdf
 */
-func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
+func Prove(secret *big.Int, params BulletProofSetupParams) (BulletProof, error) {
 	var (
-		proof ProofBP
+		proof BulletProof
 	)
 	//////////////////////////////////////////////////////////////////////////////
 	// First phase: page 19
@@ -71,19 +78,19 @@ func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 
 	// commitment to v and gamma
 	gamma, _ := rand.Int(rand.Reader, ORDER)
-	V, _ := CommitG1(secret, gamma, zkrp.H)
+	V, _ := CommitG1(secret, gamma, params.H)
 
 	// aL, aR and commitment: (A, alpha)
-	aL, _ := Decompose(secret, 2, zkrp.N)                                  // (41)
-	aR, _ := computeAR(aL)                                                 // (42)
-	alpha, _ := rand.Int(rand.Reader, ORDER)                               // (43)
-	A := commitVector(aL, aR, alpha, zkrp.H, zkrp.Gg, zkrp.Hh, zkrp.N)     // (44) 
+	aL, _ := Decompose(secret, 2, params.N)                                    // (41)
+	aR, _ := computeAR(aL)                                                     // (42)
+	alpha, _ := rand.Int(rand.Reader, ORDER)                                   // (43)
+	A := commitVector(aL, aR, alpha, params.H, params.Gg, params.Hh, params.N) // (44)
 
 	// sL, sR and commitment: (S, rho)                                     // (45)
-	sL, _ := SampleRandomVector(zkrp.N) 
-	sR, _ := SampleRandomVector(zkrp.N) 
-	rho, _ := rand.Int(rand.Reader, ORDER)                                 // (46)
-	S := commitVectorBig(sL, sR, rho, zkrp.H, zkrp.Gg, zkrp.Hh, zkrp.N)    // (47)
+	sL := sampleRandomVector(params.N)
+	sR := sampleRandomVector(params.N)
+	rho, _ := rand.Int(rand.Reader, ORDER)                                      // (46)
+	S := commitVectorBig(sL, sR, rho, params.H, params.Gg, params.Hh, params.N) // (47)
 
 	// Fiat-Shamir heuristic to compute challenges y and z, corresponds to    (49)
 	y, z, _ := HashBP(A, S)
@@ -91,18 +98,18 @@ func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 	//////////////////////////////////////////////////////////////////////////////
 	// Second phase: page 20
 	//////////////////////////////////////////////////////////////////////////////
-	tau1, _ := rand.Int(rand.Reader, ORDER)                                // (52)
-	tau2, _ := rand.Int(rand.Reader, ORDER)                                // (52)
+	tau1, _ := rand.Int(rand.Reader, ORDER) // (52)
+	tau2, _ := rand.Int(rand.Reader, ORDER) // (52)
 
 	/*
-           The paper does not describe how to compute t1 and t2.
+	   The paper does not describe how to compute t1 and t2.
 	*/
 	// compute t1: < aL - z.1^n, y^n . sR > + < sL, y^n . (aR + z . 1^n) >
-	vz, _ := VectorCopy(z, zkrp.N)
-	vy := powerOf(y, zkrp.N)
+	vz, _ := VectorCopy(z, params.N)
+	vy := powerOf(y, params.N)
 
 	// aL - z.1^n
-	naL, _ := VectorConvertToBig(aL, zkrp.N)
+	naL, _ := VectorConvertToBig(aL, params.N)
 	aLmvz, _ := VectorSub(naL, vz)
 
 	// y^n .sR
@@ -112,13 +119,13 @@ func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 	sp1, _ := ScalarProduct(aLmvz, ynsR)
 
 	// scalar prod: < sL, y^n . (aR + z . 1^n) >
-	naR, _ := VectorConvertToBig(aR, zkrp.N)
+	naR, _ := VectorConvertToBig(aR, params.N)
 	aRzn, _ := VectorAdd(naR, vz)
 	ynaRzn, _ := VectorMul(vy, aRzn)
 
 	// Add z^2.2^n to the result
 	// z^2 . 2^n
-	p2n := powerOf(new(big.Int).SetInt64(2), zkrp.N)
+	p2n := powerOf(new(big.Int).SetInt64(2), params.N)
 	zsquared := bn.Multiply(z, z)
 	z22n, _ := VectorScalarMul(p2n, zsquared)
 	ynaRzn, _ = VectorAdd(ynaRzn, z22n)
@@ -133,10 +140,10 @@ func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 	t2 = bn.Mod(t2, ORDER)
 
 	// compute T1
-	T1, _ := CommitG1(t1, tau1, zkrp.H)                                    // (53)
+	T1, _ := CommitG1(t1, tau1, params.H) // (53)
 
 	// compute T2
-	T2, _ := CommitG1(t2, tau2, zkrp.H)                                    // (53)
+	T2, _ := CommitG1(t2, tau2, params.H) // (53)
 
 	// Fiat-Shamir heuristic to compute 'random' challenge x
 	x, _, _ := HashBP(T1, T2)
@@ -172,15 +179,16 @@ func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 	mu = bn.Mod(mu, ORDER)
 
 	// Inner Product over (g, h', P.h^-mu, tprime)
-	hprime, _ := UpdateGenerators(zkrp.Hh, y, zkrp.N)
+	hprime := updateGenerators(params.Hh, y, params.N)
 
-	// Setup Inner Product (Section 4.2)
-	_, setupErr := zkrp.Zkip.Setup(zkrp.H, zkrp.Gg, hprime, tprime, zkrp.N)
+	// SetupInnerProduct Inner Product (Section 4.2)
+	var setupErr error
+	params.InnerProductParams, setupErr = setupInnerProduct(params.H, params.Gg, hprime, tprime, params.N)
 	if setupErr != nil {
 		return proof, setupErr
 	}
-	commit := commitInnerProduct(zkrp.Gg, hprime, bl, br)
-	proofip, _ := zkrp.Zkip.Prove(bl, br, commit)
+	commit := commitInnerProduct(params.Gg, hprime, bl, br)
+	proofip, _ := proveInnerProduct(bl, br, commit, params.InnerProductParams)
 
 	proof.V = V
 	proof.A = A
@@ -190,8 +198,9 @@ func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 	proof.Taux = taux
 	proof.Mu = mu
 	proof.Tprime = tprime
-	proof.Proofip = proofip
+	proof.InnerProductProof = proofip
 	proof.Commit = commit
+	proof.Params = params
 
 	return proof, nil
 }
@@ -199,20 +208,21 @@ func (zkrp *bp) Prove(secret *big.Int) (ProofBP, error) {
 /*
 Verify returns true if and only if the proof is valid.
 */
-func (zkrp *bp) Verify(proof ProofBP) (bool, error) {
+func (proof *BulletProof) Verify() (bool, error) {
+	params := proof.Params
 	// Recover x, y, z using Fiat-Shamir heuristic
 	x, _, _ := HashBP(proof.T1, proof.T2)
 	y, z, _ := HashBP(proof.A, proof.S)
 
 	// Switch generators                                                   // (64)
-	hprime, _ := UpdateGenerators(zkrp.Hh, y, zkrp.N)
+	hprime := updateGenerators(params.Hh, y, params.N)
 
 	//////////////////////////////////////////////////////////////////////////////
 	// Check that tprime  = t(x) = t0 + t1x + t2x^2  ----------  Condition (65) //
 	//////////////////////////////////////////////////////////////////////////////
 
 	// Compute left hand side
-	lhs, _ := CommitG1(proof.Tprime, proof.Taux, zkrp.H)
+	lhs, _ := CommitG1(proof.Tprime, proof.Taux, params.H)
 
 	// Compute right hand side
 	z2 := bn.Multiply(z, z)
@@ -222,7 +232,7 @@ func (zkrp *bp) Verify(proof ProofBP) (bool, error) {
 
 	rhs := new(p256.P256).ScalarMult(proof.V, z2)
 
-	delta := zkrp.delta(y, z)
+	delta := params.delta(y, z)
 
 	gdelta := new(p256.P256).ScalarBaseMult(delta)
 
@@ -248,15 +258,15 @@ func (zkrp *bp) Verify(proof ProofBP) (bool, error) {
 
 	// g^-z
 	mz := bn.Sub(ORDER, z)
-	vmz, _ := VectorCopy(mz, zkrp.N)
-	gpmz, _ := VectorExp(zkrp.Gg, vmz)
+	vmz, _ := VectorCopy(mz, params.N)
+	gpmz, _ := VectorExp(params.Gg, vmz)
 
 	// z.y^n
-	vz, _ := VectorCopy(z, zkrp.N)
-	vy := powerOf(y, zkrp.N)
+	vz, _ := VectorCopy(z, params.N)
+	vy := powerOf(y, params.N)
 	zyn, _ := VectorMul(vy, vz)
 
-	p2n := powerOf(new(big.Int).SetInt64(2), zkrp.N)
+	p2n := powerOf(new(big.Int).SetInt64(2), params.N)
 	zsquared := bn.Multiply(z, z)
 	z22n, _ := VectorScalarMul(p2n, zsquared)
 
@@ -274,7 +284,7 @@ func (zkrp *bp) Verify(proof ProofBP) (bool, error) {
 	// Compute P - rhs  #################### Condition (67) ######################
 
 	// h^mu
-	rP := new(p256.P256).ScalarMult(zkrp.H, proof.Mu)
+	rP := new(p256.P256).ScalarMult(params.H, proof.Mu)
 	rP.Multiply(rP, proof.Commit)
 
 	// Subtract lhs and rhs and compare with poitn at infinity
@@ -283,7 +293,7 @@ func (zkrp *bp) Verify(proof ProofBP) (bool, error) {
 	c67 := rP.IsZero()
 
 	// Verify Inner Product Proof ################################################
-	ok, _ := zkrp.Zkip.Verify(proof.Proofip)
+	ok, _ := proof.InnerProductProof.Verify()
 
 	result := c65 && c67 && ok
 
@@ -293,22 +303,22 @@ func (zkrp *bp) Verify(proof ProofBP) (bool, error) {
 /*
 SampleRandomVector generates a vector composed by random big numbers.
 */
-func SampleRandomVector(N int64) ([]*big.Int, error) {
+func sampleRandomVector(N int64) []*big.Int {
 	s := make([]*big.Int, N)
-	for i:=int64(0); i < N; i++ {
+	for i := int64(0); i < N; i++ {
 		s[i], _ = rand.Int(rand.Reader, ORDER)
 	}
-	return s, nil;
+	return s
 }
 
 /*
-Updategenerators is responsible for computing generators in the following format:
-[h_1, h_2^(y^-1), ..., h_n^(y^(-n+1))], where [h_1, h_2, ..., h_n] is the original 
-vector of generators. This method is used both by prover and verifier. After this 
-update we have that A is a vector commitments to (aL, aR . y^n). Also S is a vector 
+updateGenerators is responsible for computing generators in the following format:
+[h_1, h_2^(y^-1), ..., h_n^(y^(-n+1))], where [h_1, h_2, ..., h_n] is the original
+vector of generators. This method is used both by prover and verifier. After this
+update we have that A is a vector commitments to (aL, aR . y^n). Also S is a vector
 commitment to (sL, sR . y^n).
 */
-func UpdateGenerators(Hh []*p256.P256, y *big.Int, N int64) ([]*p256.P256, error) {
+func updateGenerators(Hh []*p256.P256, y *big.Int, N int64) []*p256.P256 {
 	var (
 		i int64
 	)
@@ -324,7 +334,7 @@ func UpdateGenerators(Hh []*p256.P256, y *big.Int, N int64) ([]*p256.P256, error
 		expy = bn.Multiply(expy, yinv)
 		i = i + 1
 	}
-	return hprime, nil
+	return hprime
 }
 
 /*
@@ -332,7 +342,7 @@ aR = aL - 1^n
 */
 func computeAR(x []int64) ([]int64, error) {
 	result := make([]int64, len(x))
-	for i:=int64(0); i < int64(len(x)); i++ {
+	for i := int64(0); i < int64(len(x)); i++ {
 		if x[i] == 0 {
 			result[i] = -1
 		} else if x[i] == 1 {
@@ -347,7 +357,7 @@ func computeAR(x []int64) ([]int64, error) {
 func commitVectorBig(aL, aR []*big.Int, alpha *big.Int, H *p256.P256, g, h []*p256.P256, n int64) *p256.P256 {
 	// Compute h^alpha.vg^aL.vh^aR
 	R := new(p256.P256).ScalarMult(H, alpha)
-	for i:=int64(0); i < n; i++ {
+	for i := int64(0); i < n; i++ {
 		R.Multiply(R, new(p256.P256).ScalarMult(g[i], aL[i]))
 		R.Multiply(R, new(p256.P256).ScalarMult(h[i], aR[i]))
 	}
@@ -360,7 +370,7 @@ Commitvector computes a commitment to the bit of the secret.
 func commitVector(aL, aR []int64, alpha *big.Int, H *p256.P256, g, h []*p256.P256, n int64) *p256.P256 {
 	// Compute h^alpha.vg^aL.vh^aR
 	R := new(p256.P256).ScalarMult(H, alpha)
-	for i:=int64(0); i < n; i++ {
+	for i := int64(0); i < n; i++ {
 		gaL := new(p256.P256).ScalarMult(g[i], new(big.Int).SetInt64(aL[i]))
 		haR := new(p256.P256).ScalarMult(h[i], new(big.Int).SetInt64(aR[i]))
 		R.Multiply(R, gaL)
@@ -372,7 +382,7 @@ func commitVector(aL, aR []int64, alpha *big.Int, H *p256.P256, g, h []*p256.P25
 /*
 delta(y,z) = (z-z^2) . < 1^n, y^n > - z^3 . < 1^n, 2^n >
 */
-func (zkrp *bp) delta(y, z *big.Int) *big.Int {
+func (params *BulletProofSetupParams) delta(y, z *big.Int) *big.Int {
 	var (
 		result *big.Int
 	)
@@ -383,12 +393,12 @@ func (zkrp *bp) delta(y, z *big.Int) *big.Int {
 	z3 = bn.Mod(z3, ORDER)
 
 	// < 1^n, y^n >
-	v1, _ := VectorCopy(new(big.Int).SetInt64(1), zkrp.N)
-	vy := powerOf(y, zkrp.N)
+	v1, _ := VectorCopy(new(big.Int).SetInt64(1), params.N)
+	vy := powerOf(y, params.N)
 	sp1y, _ := ScalarProduct(v1, vy)
 
 	// < 1^n, 2^n >
-	p2n := powerOf(new(big.Int).SetInt64(2), zkrp.N)
+	p2n := powerOf(new(big.Int).SetInt64(2), params.N)
 	sp12, _ := ScalarProduct(v1, p2n)
 
 	result = bn.Sub(z, z2)

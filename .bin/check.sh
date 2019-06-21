@@ -9,7 +9,7 @@ error () {
     local status=$1
     echo -e "\e[0;37;41mNOK\e[0m"
     echo -e "${savedOutput}\n"
-#    exit ${status}
+    exit ${status}
 }
 
 success () {

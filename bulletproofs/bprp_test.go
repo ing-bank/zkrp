@@ -5,67 +5,52 @@ import (
 	"testing"
 )
 
-/*
-Test the TRUE case of Generic ZK Range Proof scheme using Bulletproofs.
-*/
-func TestTrueGenericBulletproofsZKRP(t *testing.T) {
-        var (
-                zkrp bprp
-        )
-        //A = 18
-        //B = 200
-        //X = 19 
-        secret, _ := new(big.Int).SetString("19", 10)
-
-        _ = zkrp.Setup(18, 200)
-        proof, _ := zkrp.Prove(secret)
-        ok, _ := zkrp.Verify(proof)
-
-        if ok != true {
-                t.Errorf("Assert failure: expected true, actual: %t", ok)
-        }
+func TestXWithinGenericRange(t *testing.T) {
+	if setupProveVerify18To200(t, 40) != true {
+		t.Errorf("x within range should verify successfully")
+	}
 }
 
-/*
-Test the FALSE case where secret is greater than B of Generic ZK Range 
-Proof scheme using Bulletproofs.
-*/
-func TestFalseGreaterThanGenericBulletproofsZKRP(t *testing.T) {
-        var (
-                zkrp bprp
-        )
-        //A = 18
-        //B = 200
-        //X = 201
-        secret, _ := new(big.Int).SetString("201", 10)
-
-        _ = zkrp.Setup(18, 200) 
-        proof, _ := zkrp.Prove(secret)
-        ok, _ := zkrp.Verify(proof)
-
-        if ok != false {
-                t.Errorf("Assert failure: expected false, actual: %t", ok)
-        }
+func TestXEqualToRangeStartGeneric(t *testing.T) {
+	if setupProveVerify18To200(t, 18) != true {
+		t.Errorf("x equal to range start should verify successfully")
+	}
 }
 
-/*
-Test the FALSE case where secret is less than A of Generic ZK Range 
-Proof scheme using Bulletproofs.
-*/
-func TestFalseLessThanGenericBulletproofsZKRP(t *testing.T) {
-        var (
-                zkrp bprp
-        )
-        //A = 18
-        //B = 200
-        //X = 17
-        secret, _ := new(big.Int).SetString("17", 10)
+func TestXLessThanRangeStartGeneric(t *testing.T) {
+	if setupProveVerify18To200(t, 17) != false {
+		t.Errorf("x less that range start should fail verification")
+	}
+}
 
-        _ = zkrp.Setup(18, 200)
-        proof, _ := zkrp.Prove(secret)
-        ok, _ := zkrp.Verify(proof)
+func TestXGreaterThanRangeEndGeneric(t *testing.T) {
+	if setupProveVerify18To200(t, 201) != false {
+		t.Errorf("x greater than range end should fail verification")
+	}
+}
 
-        if ok != false {
-                t.Errorf("Assert failure: expected false, actual: %t", ok)
-        }
+func TestXEqualToRangeEndGeneric(t *testing.T) {
+	if setupProveVerify18To200(t, 200) != false {
+		t.Errorf("x equal to range end should fail verification")
+	}
+}
+
+func setupProveVerify18To200(t *testing.T, secret int) bool {
+	params, errSetup := SetupGeneric(18, 200)
+	if errSetup != nil {
+		t.Errorf(errSetup.Error())
+		t.FailNow()
+	}
+	bigSecret := new(big.Int).SetInt64(int64(secret))
+	proof, errProve := ProveGeneric(bigSecret, params)
+	if errProve != nil {
+		t.Errorf(errProve.Error())
+		t.FailNow()
+	}
+	ok, errVerify := proof.Verify()
+	if errVerify != nil {
+		t.Errorf(errVerify.Error())
+		t.FailNow()
+	}
+	return ok
 }
