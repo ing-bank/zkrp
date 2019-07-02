@@ -67,6 +67,37 @@ steps:
     workingDirectory: '$(modulePath)'
     displayName: 'errcheck'
 
+  - task: DownloadPipelineArtifact@2
+    displayName: 'Download OWASP cache'
+    continueOnError: true
+    inputs:
+      source: specific
+      artifact: OWASP-dependency-check-cache
+      path: $(Pipeline.Workspace)/owasp-cache
+      project: $(System.TeamProjectId) # self
+      pipeline: 3 # The ID of the OWASP cache builder pipeline
+      runVersion: 'latest'
+
+  - script: |
+      curl -sfL -o $(system.defaultWorkingDirectory)/dependency-check.zip https://dl.bintray.com/jeremy-long/owasp/dependency-check-5.1.0-release.zip
+      unzip $(system.defaultWorkingDirectory)/dependency-check.zip -d $(system.defaultWorkingDirectory)
+      $(system.defaultWorkingDirectory)/dependency-check/bin/dependency-check.sh --suppress .owasp-deps-suppress.xml --cveValidForHours 4 --data $(Pipeline.Workspace)/owasp-cache --enableExperimental --scan $(modulePath) --format HTML --out $(Build.ArtifactStagingDirectory)/dependency-check
+    workingDirectory: '$(modulePath)'
+    displayName: 'OWASP Dependency Check'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish OWASP report'
+    continueOnError: true
+    inputs:
+      pathtoPublish: $(Build.ArtifactStagingDirectory)/dependency-check
+      artifactName: OWASP-dependency-check-report
+
+  - script: |
+      gem install license_finder
+      license_finder --decisions-file=.license-finder.yml
+    workingDirectory: '$(modulePath)'
+    displayName: 'license-finder'
+
   # https://github.com/psampaz/go-mod-outdated/archive/v0.3.0.tar.gz
   - script: |
       mkdir -p $(go env GOPATH)/src/github.com/psampaz/go-mod-outdated
@@ -76,17 +107,6 @@ steps:
       go list -u -m -json all | go-mod-outdated -update -direct
     workingDirectory: '$(modulePath)'
     displayName: 'go-mod-outdated'
-
-  # license_finder --decisions-file=.license-finder.yml
-  - script: |
-
-      gem install license_finder
-      license_finder --decisions-file=.license-finder.yml
-    workingDirectory: '$(modulePath)'
-    displayName: 'license-finder'
-
-
-
 
   - script: |
       go test -v ./...
