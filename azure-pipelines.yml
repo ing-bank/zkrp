@@ -109,6 +109,12 @@ steps:
     displayName: 'go-mod-outdated'
 
   - script: |
-      go test -v ./...
+      go get -u github.com/jstemmer/go-junit-report
+      go test -v ./... 2>&1 | go-junit-report > $(Pipeline.Workspace)/junit.xml
     workingDirectory: '$(modulePath)'
     displayName: 'Run tests'
+
+  - task: PublishTestResults@2
+    inputs:
+      testRunner: JUnit
+      testResultsFiles: $(Pipeline.Workspace)/junit.xml
