@@ -127,3 +127,13 @@ steps:
     inputs:
       codeCoverageTool: Cobertura
       summaryFileLocation: $(Pipeline.Workspace)/coverage.xml
+
+
+  # NOTE: this requires (free) installation in the Azure organisation of:
+  # https://marketplace.visualstudio.com/items?itemName=mspremier.BuildQualityChecks
+  - task: BuildQualityChecks@5
+    inputs:
+      checkCoverage: true
+      coverageFailOption: 'fixed'
+      coverageType: 'lines'
+      coverageThreshold: '80'
