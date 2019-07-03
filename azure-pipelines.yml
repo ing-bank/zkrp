@@ -67,6 +67,35 @@ steps:
     workingDirectory: '$(modulePath)'
     displayName: 'errcheck'
 
+  - task: DownloadGitHubRelease@0
+    displayName: 'Download cache from release on GitHub'
+    inputs:
+      connection: GitHub
+      userRepository: 'mvdbos/owasp-dep-check-cache-builder'
+      defaultVersionType: 'specificTag'
+      version: 'latest'
+      downloadPath: '$(Pipeline.Workspace)/owasp-cache/'
+
+  - script: |
+      curl -sfL -o $(system.defaultWorkingDirectory)/dependency-check.zip https://dl.bintray.com/jeremy-long/owasp/dependency-check-5.1.0-release.zip
+      unzip $(system.defaultWorkingDirectory)/dependency-check.zip -d $(system.defaultWorkingDirectory)
+      $(system.defaultWorkingDirectory)/dependency-check/bin/dependency-check.sh --suppress .owasp-deps-suppress.xml --cveValidForHours 4 --data $(Pipeline.Workspace)/owasp-cache --enableExperimental --scan $(modulePath) --format HTML --out $(Build.ArtifactStagingDirectory)/dependency-check
+    workingDirectory: '$(modulePath)'
+    displayName: 'OWASP Dependency Check'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish OWASP report'
+    continueOnError: true
+    inputs:
+      pathtoPublish: $(Build.ArtifactStagingDirectory)/dependency-check
+      artifactName: OWASP-dependency-check-report
+
+  - script: |
+      gem install license_finder
+      license_finder --decisions-file=.license-finder.yml
+    workingDirectory: '$(modulePath)'
+    displayName: 'license-finder'
+
   # https://github.com/psampaz/go-mod-outdated/archive/v0.3.0.tar.gz
   - script: |
       mkdir -p $(go env GOPATH)/src/github.com/psampaz/go-mod-outdated
@@ -77,18 +106,32 @@ steps:
     workingDirectory: '$(modulePath)'
     displayName: 'go-mod-outdated'
 
-  # license_finder --decisions-file=.license-finder.yml
   - script: |
-
-      gem install license_finder
-      license_finder --decisions-file=.license-finder.yml
-    workingDirectory: '$(modulePath)'
-    displayName: 'license-finder'
-
-
-
-
-  - script: |
-      go test -v ./...
+      go get -u github.com/jstemmer/go-junit-report
+      go get github.com/axw/gocov/gocov
+      go get github.com/AlekSi/gocov-xml
+      go test -v -coverprofile=coverage.out -covermode count ./... 2>&1 | go-junit-report > $(Pipeline.Workspace)/junit.xml
+      gocov convert coverage.out > coverage.json
+      gocov-xml < coverage.json > $(Pipeline.Workspace)/coverage.xml
     workingDirectory: '$(modulePath)'
     displayName: 'Run tests'
+
+  - task: PublishTestResults@2
+    inputs:
+      testRunner: JUnit
+      testResultsFiles: $(Pipeline.Workspace)/junit.xml
+
+  - task: PublishCodeCoverageResults@1
+    inputs:
+      codeCoverageTool: Cobertura
+      summaryFileLocation: $(Pipeline.Workspace)/coverage.xml
+
+
+  # NOTE: this requires (free) installation in the Azure organisation of:
+  # https://marketplace.visualstudio.com/items?itemName=mspremier.BuildQualityChecks
+  - task: BuildQualityChecks@5
+    inputs:
+      checkCoverage: true
+      coverageFailOption: 'fixed'
+      coverageType: 'lines'
+      coverageThreshold: '80'
