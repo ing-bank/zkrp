@@ -86,7 +86,7 @@ func TestIsPowerOfTwo(t *testing.T) {
 }
 
 func TestBulletProof_MarshalJSON(t *testing.T) {
-	t.SkipNow() //TODO: make this work. Marshalling is broken
+	//t.SkipNow() //TODO: make this work. Marshalling is broken
 
 	params, _ := Setup(MAX_RANGE_END)
 	proof, _ := Prove(new(big.Int).SetInt64(18), params)
