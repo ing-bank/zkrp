@@ -67,16 +67,14 @@ steps:
     workingDirectory: '$(modulePath)'
     displayName: 'errcheck'
 
-  - task: DownloadPipelineArtifact@2
-    displayName: 'Download OWASP cache'
-    continueOnError: true
+  - task: DownloadGitHubRelease@0
+    displayName: 'Download cache from release on GitHub'
     inputs:
-      source: specific
-      artifact: OWASP-dependency-check-cache
-      path: $(Pipeline.Workspace)/owasp-cache
-      project: $(System.TeamProjectId) # self
-      pipeline: 3 # The ID of the OWASP cache builder pipeline
-      runVersion: 'latest'
+      connection: GitHub
+      userRepository: 'mvdbos/owasp-dep-check-cache-builder'
+      defaultVersionType: 'specificTag'
+      version: 'latest'
+      downloadPath: '$(Pipeline.Workspace)/owasp-cache/'
 
   - script: |
       curl -sfL -o $(system.defaultWorkingDirectory)/dependency-check.zip https://dl.bintray.com/jeremy-long/owasp/dependency-check-5.1.0-release.zip
