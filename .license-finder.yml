@@ -23,3 +23,15 @@
   - github.com/ethereum/go-ethereum
   - LGPL
   - *1
+- - :add_package
+  - github.com/stretchr/testify
+  - 
+  - &2
+    :who: 
+    :why: 
+    :versions: []
+    :when: 2019-06-24 08:49:59.446312000 Z
+- - :license
+  - github.com/stretchr/testify
+  - MIT
+  - *2
