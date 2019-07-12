@@ -11,15 +11,30 @@ import (
 	"math/big"
 )
 
+/*
+BulletProofSetupParams is the structure that stores the parameters for
+the Zero Knowledge Proof system. 
+*/
 type BulletProofSetupParams struct {
+	// N is the bit-length of the range.
 	N                  int64
+	// G is the Elliptic Curve generator.
 	G                  *p256.P256
+	// H is a new generator, computed using MapToGroup function,
+	// such that there is no discrete logarithm relation with G.
 	H                  *p256.P256
+	// Gg and Hh are sets of new generators obtained using MapToGroup.
+	// They are used to compute Pedersen Vector Commitments.
 	Gg                 []*p256.P256
 	Hh                 []*p256.P256
+	// InnerProductParams is the setup parameters for the inner product proof.
 	InnerProductParams InnerProductParams
 }
 
+/*
+BulletProofs structure contains the elements that are necessary for the verification
+of the Zero Knowledge Proof.
+*/
 type BulletProof struct {
 	V                 *p256.P256
 	A                 *p256.P256
@@ -37,7 +52,7 @@ type BulletProof struct {
 /*
 SetupInnerProduct is responsible for computing the common parameters.
 Only works for ranges to 0 to 2^n, where n is a power of 2 and n <= 32
-TODO: allow n > 32 (need uint64 for that)
+TODO: allow n > 32 (need uint64 for that).
 */
 func Setup(b int64) (BulletProofSetupParams, error) {
 	if !IsPowerOfTwo(b) {
