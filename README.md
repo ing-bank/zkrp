@@ -9,6 +9,8 @@
  
 ### Bulletproofs
 
+Next we show how to use Bulletproofs to construct a Zero Knowledge Range Proof. The first step is to setup the scheme, passing as parameter the lower and upper bounds. The second step is to call the method that generates the proof. Finally the verifier can check if the proof is valid or not. It is important to remark that the data stored in the proof does not reveal information about the secret information, which in this example is the number 40.
+
 ```
 package main
  
@@ -32,11 +34,6 @@ func main() {
          }
 }
 ```
-
-### Set Membership
-
-### Boudot's Range Proof
-
 
 
 ## Contributing
