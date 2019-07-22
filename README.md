@@ -111,4 +111,4 @@ Then these checks will be executed on every local commit.
 
 ## License
 
-This repository is GNU Lesser General Public License v3.0 licensed, as found in the [LICENSE file](LICENSE).
+This repository is GNU Lesser General Public License v3.0 licensed, as found in [LICENSE file](LICENSE) and [LICENSE.LESSER file](LICENSE.LESSER).
