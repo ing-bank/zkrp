@@ -15,18 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/*
-This file contains the implementation of the ZKRP scheme proposed in the paper:
-Efficient Protocols for Set Membership and Range Proofs
-Jan Camenisch, Rafik Chaabouni, abhi shelat
-Asiacrypt 2008
-*/
-
-package zkpsdk
-
-// type izkrp interface {
-// 	//Commit()
-// 	SetupInnerProduct(a, b int64)
-// 	Prove()
-// 	Verify() (bool, error)
-// }
+// Package zkrp creates and verifies zero-knowledge range proofs and set membership proofs.
+//
+// This package contains ING Bank's implementations of Bulletproofs, Zero Knowledge Range Proof (ZKRP) and Zero Knowledge Set Membership (ZKSM). The current implementations are based on the following papers:
+//
+//  * Range Proofs based on the paper: Efficient Proofs that a Committed Number Lies in an Interval by Fabrice Boudot.
+//  * Set Membership Proofs based on the paper: Efficient protocols for set membership and range proofs, by Jan Camenisch, Rafik Chaabouni and Abhi Shelat.
+//  * Bulletproofs based on paper: Bulletproofs: Short Proofs for Confidential Transactions and More, by Benedikt Bünz, Jonathan Bootle, Dan Boneh, Andrew Poelstra, Pieter Wuille and Greg Maxwell.
+//
+// For details, see https://github.com/ing-bank/zkrp/blob/master/README.md
+package zkrp

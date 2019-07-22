@@ -1,3 +1,5 @@
+[![GoDoc](https://godoc.org/github.com/ing-bank/zkrp?status.svg)](https://godoc.org/github.com/ing-bank/zkrp)
+
 # Zero Knowledge Proofs
  
  This repository contains ING's implementations of **Bulletproofs**, **Zero Knowledge Range Proof (ZKRP)** and **Zero Knowledge Set Membership (ZKSM)**. The current implementations are based on the following papers:
