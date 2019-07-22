@@ -16,9 +16,8 @@
  */
 
 /*
-Encapsulates secP256k1 elliptic curve.
+Package p256 Encapsulates secP256k1 elliptic curve.
 */
-
 package p256
 
 import (
