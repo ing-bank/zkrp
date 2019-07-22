@@ -21,7 +21,7 @@ import (
     "crypto/sha256"
     "math/big"
 
-    "github.com/mvdbos/zkpsdk/util/byteconversion"
+    "github.com/ing-bank/bulletproofs/util/byteconversion"
 )
 
 func CalculateHash(b1 *big.Int, b2 *big.Int) (*big.Int, error) {

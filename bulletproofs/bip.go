@@ -22,9 +22,9 @@ import (
     "errors"
     "math/big"
 
-    "github.com/mvdbos/zkpsdk/crypto/p256"
-    "github.com/mvdbos/zkpsdk/util/bn"
-    "github.com/mvdbos/zkpsdk/util/byteconversion"
+    "github.com/ing-bank/bulletproofs/crypto/p256"
+    "github.com/ing-bank/bulletproofs/util/bn"
+    "github.com/ing-bank/bulletproofs/util/byteconversion"
 )
 
 var SEEDU = "BulletproofsDoesNotNeedTrustedSetupU"

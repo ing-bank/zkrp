@@ -20,7 +20,7 @@ package bn256
 import (
     "testing"
 
-    "github.com/mvdbos/zkpsdk/util/intconversion"
+    "github.com/ing-bank/bulletproofs/util/intconversion"
 )
 
 func TestPairings(t *testing.T) {

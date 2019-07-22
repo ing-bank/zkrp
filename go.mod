@@ -1,4 +1,4 @@
-module github.com/mvdbos/zkpsdk
+module github.com/ing-bank/bulletproofs
 
 require (
 	github.com/ethereum/go-ethereum v1.8.27

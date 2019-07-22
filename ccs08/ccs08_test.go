@@ -22,10 +22,10 @@ import (
     "math/big"
     "testing"
 
-    "github.com/mvdbos/zkpsdk/crypto/bn256"
-    . "github.com/mvdbos/zkpsdk/util"
-    "github.com/mvdbos/zkpsdk/util/bn"
-    "github.com/mvdbos/zkpsdk/util/intconversion"
+    "github.com/ing-bank/bulletproofs/crypto/bn256"
+    . "github.com/ing-bank/bulletproofs/util"
+    "github.com/ing-bank/bulletproofs/util/bn"
+    "github.com/ing-bank/bulletproofs/util/intconversion"
 )
 
 /*

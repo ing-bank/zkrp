@@ -18,8 +18,8 @@
 package bn
 
 import (
-    "github.com/mvdbos/zkpsdk/util/intconversion"
-    // . "github.com/mvdbos/zkpsdk/util"
+    "github.com/ing-bank/bulletproofs/util/intconversion"
+    // . "github.com/ing-bank/bulletproofs/util"
     "math/big"
     "testing"
 )
