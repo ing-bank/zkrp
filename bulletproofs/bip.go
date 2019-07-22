@@ -11,6 +11,10 @@ import (
 
 var SEEDU = "BulletproofsDoesNotNeedTrustedSetupU"
 
+/*
+InnerProductParams contains elliptic curve generators used to compute Pedersen 
+commitments. 
+*/
 type InnerProductParams struct {
 	N  int64
 	Cc *big.Int
@@ -21,6 +25,9 @@ type InnerProductParams struct {
 	P  *p256.P256
 }
 
+/*
+InnerProductProof contains the elements used to verify the Inner Product Proof.
+*/
 type InnerProductProof struct {
 	N  int64
 	Ls []*p256.P256
@@ -74,6 +81,9 @@ func setupInnerProduct(H *p256.P256, g, h []*p256.P256, c *big.Int, N int64) (In
 	return params, nil
 }
 
+/*
+proveInnerProduct calculates the Zero Knowledge Proof for the Inner Product argument.
+*/
 func proveInnerProduct(a, b []*big.Int, P *p256.P256, params InnerProductParams) (InnerProductProof, error) {
 	var (
 		proof InnerProductProof

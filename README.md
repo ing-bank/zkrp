@@ -1,6 +1,39 @@
 # ING ZKP SDK FTW
 
+## Zero Knowledge Proofs
+ 
+ This repository contains ING's **Zero Knowledge Range Proof (ZKRP)** and **Zero Knowledge Set Membership (ZKSM)**. The current implementations are based on the following papers:
+ * Range Proofs based on the paper: [Efficient Proofs that a Committed Number Lies in an Interval](https://www.iacr.org/archive/eurocrypt2000/1807/18070437-new.pdf) by **Fabrice Boudot**.
+ * Set Membership Proofs based on the paper: [Efficient protocols for set membership and range proofs](https://infoscience.epfl.ch/record/128718/files/CCS08.pdf), by **Jan Camenisch, Rafik Chaabouni and Abhi Shelat**.
+ * Bulletproofs based on paper: [Bulletproofs: Short Proofs for Confidential Transactions and More](https://eprint.iacr.org/2017/1066.pdf), by **Benedikt Bünz, Jonathan Bootle, Dan Boneh, Andrew Poelstra, Pieter Wuille and Greg Maxwell**.
+ 
+### Bulletproofs
 
+Next we show how to use Bulletproofs to construct a Zero Knowledge Range Proof. The first step is to setup the scheme, passing as parameter the lower and upper bounds. The second step is to call the method that generates the proof. Finally the verifier can check if the proof is valid or not. It is important to remark that the data stored in the proof does not reveal information about the secret information, which in this example is the number 40.
+
+```
+package main
+ 
+import (
+        "github.com/mvdbos/zkpsdk/bulletproofs"
+        "math/big"
+        "fmt"
+)
+
+func main() {
+         params, errSetup := bulletproofs.SetupGeneric(18, 200)
+         if errSetup == nil { 
+                 bigSecret := new(big.Int).SetInt64(int64(40))
+                 proof, errProve := bulletproofs.ProveGeneric(bigSecret, params)
+                 if errProve == nil {
+                         ok, errVerify := proof.Verify()
+                         if ok && errVerify == nil {
+                                 fmt.Println("ZKP successfully verified.")
+                         }
+                 }
+         }
+}
+```
 
 
 ## Contributing

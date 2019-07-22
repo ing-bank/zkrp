@@ -5,6 +5,8 @@ import (
 )
 
 /*
+bprp structure contains 2 BulletProofs in order to allow computation of 
+generic Range Proofs, for any interval [A, B). 
  */
 type bprp struct {
 	A   int64
@@ -13,11 +15,18 @@ type bprp struct {
 	BP2 BulletProofSetupParams
 }
 
+/*
+ProofBPRP stores the generic ZKRP.
+*/
 type ProofBPRP struct {
 	P1 BulletProof
 	P2 BulletProof
 }
 
+/*
+SetupGeneric is responsible for calling the Setup algorithm for each 
+BulletProof.
+*/
 func SetupGeneric(a, b int64) (*bprp, error) {
 	params := new(bprp)
 	params.A = a
@@ -34,6 +43,12 @@ func SetupGeneric(a, b int64) (*bprp, error) {
 	return params, nil
 }
 
+/*
+BulletProof only works for interval in the format [0, 2^N). In order to
+allow generic intervals in the format [A, B) it is necessary to use 2
+BulletProofs, as explained in Section 4.3 from the following paper:
+https://infoscience.epfl.ch/record/128718/files/CCS08.pdf
+*/
 func ProveGeneric(secret *big.Int, params *bprp) (ProofBPRP, error) {
 	var proof ProofBPRP
 
@@ -58,6 +73,9 @@ func ProveGeneric(secret *big.Int, params *bprp) (ProofBPRP, error) {
 	return proof, nil
 }
 
+/*
+Verify call the Verification algorithm for each BulletProof argument. 
+*/
 func (proof ProofBPRP) Verify() (bool, error) {
 	ok1, err1 := proof.P1.Verify()
 	if !ok1 {
