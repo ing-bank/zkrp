@@ -29,8 +29,8 @@ import (
     "errors"
     "math/big"
 
-    "github.com/ing-bank/bulletproofs/crypto/bn256"
-    "github.com/ing-bank/bulletproofs/util/bn"
+    "github.com/ing-bank/zkrp/crypto/bn256"
+    "github.com/ing-bank/zkrp/util/bn"
 )
 
 type Keypair struct {

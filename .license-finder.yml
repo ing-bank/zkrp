@@ -1,22 +1,22 @@
 ---
 - - :whitelist
   - LGPL
-  - :who: 
-    :why: 
+  - :who:
+    :why:
     :versions: []
     :when: 2019-06-13 09:16:40.012169000 Z
 - - :whitelist
   - MIT
-  - :who: 
-    :why: 
+  - :who:
+    :why:
     :versions: []
     :when: 2019-06-13 09:16:44.743375000 Z
 - - :add_package
   - github.com/ethereum/go-ethereum
-  - 
+  -
   - &1
-    :who: 
-    :why: 
+    :who:
+    :why:
     :versions: []
     :when: 2019-06-13 09:24:31.804485000 Z
 - - :license
@@ -25,10 +25,10 @@
   - *1
 - - :add_package
   - github.com/stretchr/testify
-  - 
+  -
   - &2
-    :who: 
-    :why: 
+    :who:
+    :why:
     :versions: []
     :when: 2019-06-24 08:49:59.446312000 Z
 - - :license

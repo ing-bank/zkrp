@@ -24,9 +24,8 @@ import (
     "math"
     "math/big"
 
-    "github.com/ing-bank/bulletproofs/crypto/p256"
-    . "github.com/ing-bank/bulletproofs/util"
-    "github.com/ing-bank/bulletproofs/util/bn"
+    "github.com/ing-bank/zkrp/crypto/p256"
+    "github.com/ing-bank/zkrp/util/bn"
 )
 
 /*
