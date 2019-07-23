@@ -34,6 +34,7 @@ import (
 
     "github.com/ing-bank/zkrp/crypto/bbsignatures"
     "github.com/ing-bank/zkrp/crypto/bn256"
+    . "github.com/ing-bank/zkrp/util"
     "github.com/ing-bank/zkrp/util/bn"
     "github.com/ing-bank/zkrp/util/intconversion"
 )

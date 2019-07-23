@@ -25,6 +25,7 @@ import (
     "math/big"
 
     "github.com/ing-bank/zkrp/crypto/p256"
+    . "github.com/ing-bank/zkrp/util"
     "github.com/ing-bank/zkrp/util/bn"
 )
 
