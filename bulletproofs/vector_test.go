@@ -21,7 +21,7 @@ import (
     "math/big"
     "testing"
 
-    "github.com/ing-bank/bulletproofs/util/intconversion"
+    "github.com/ing-bank/zkrp/util/intconversion"
 )
 
 /*

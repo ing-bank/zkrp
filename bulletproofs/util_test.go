@@ -22,7 +22,7 @@ import (
     "math/big"
     "testing"
 
-    "github.com/ing-bank/bulletproofs/crypto/p256"
+    "github.com/ing-bank/zkrp/crypto/p256"
 )
 
 /*
