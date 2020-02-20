@@ -34,7 +34,7 @@ ZKSM allows to prove that some secret value is an element of a determined set, w
 
 In 2017 researchers proposed the scheme called Bulletproofs to provide a more efficient solution for Zero Knowledge Range Proofs (ZKRP). It was specifically designed for Blockchain, where it is important to have short proofs. For instance, Bulletproofs allows to construct proofs whose size is only logarithmic with respect to the input size. Also, Bulletproofs doesn't require a trusted setup, solving an important problem in order to use this technology to solve practical problems. Previous solutions do require a trusted setup, what means that if the setup is not carried out in an appropriate way, then it would be possible to generate fake ZK proofs. 
 
-Bulletproofs can be used to solve the abovementioned problems and even more, because it is possible to use it for any computable function which requires privacy for its input data. Therefore, Bulletproofs is similiar to zk-SNARKs and zk-STARKs. However, this functionalities were not yet implemented and should be considered as future work. In particular, Bulletproofs seems an interesting building block to construct private smart contracts. 
+Bulletproofs can be used to solve the above mentioned problems and even more, because it is possible to use it for any computable function which requires privacy for its input data. Therefore, Bulletproofs is similar to zk-SNARKs and zk-STARKs. However, this functionalities were not yet implemented and should be considered as future work. In particular, Bulletproofs seems an interesting building block to construct private smart contracts. 
 
 ### Bulletproofs example
 
@@ -70,7 +70,7 @@ var decodedProof ProofBPRP
 _ = json.Unmarshal(jsonEncoded, &decodedProof)
 
 // Verify the proof
-ok, _ := proof.Verify()
+ok, _ := decodedProof.Verify()
 
 if ok == true {
     println("Age verified to be [18, 200)")

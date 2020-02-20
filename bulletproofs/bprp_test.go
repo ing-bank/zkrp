@@ -110,7 +110,7 @@ func TestJsonEncodeDecodeBPRP(t *testing.T) {
     assert.Equal(t, proof, decodedProof, "should be equal")
 
     // Verify the proof
-    ok, errVerify := proof.Verify()
+    ok, errVerify := decodedProof.Verify()
     if errVerify != nil {
         t.Errorf(errVerify.Error())
         t.FailNow()
