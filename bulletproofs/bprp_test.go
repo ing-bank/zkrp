@@ -98,7 +98,7 @@ func TestJsonEncodeDecodeBPRP(t *testing.T) {
         t.Fatal("encode error:", err)
     }
 
-    // Here the proof is passed to th verifier, possibly over a network.
+    // Here the proof is passed to the verifier, possibly over a network.
 
     // Decode the proof from JSON
     var decodedProof ProofBPRP
