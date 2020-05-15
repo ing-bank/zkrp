@@ -45,7 +45,7 @@ Finally the verifier can check if the proof is valid or not.
 It is important to remark that the data stored in the proof does not reveal information about the secret information, 
 which in this example is the number 40.
 
-This example code does not handle errors for simplicity, please check [bulletproofs/bprp_test.go:61](bulletproofs/bprp_test.go) 
+This example code does not handle errors for simplicity, please check [bulletproofs/bprp_test.go:78](bulletproofs/bprp_test.go#L78) 
 for a working implementation with error handling.
 
 ```go
@@ -63,7 +63,7 @@ proof, _ := ProveGeneric(bigSecret, params)
 // Encode the proof to JSON
 jsonEncoded, _ := json.Marshal(proof)
 
-// It this stage, the proof is passed to th verifier, possibly over a network.
+// It this stage, the proof is passed to the verifier, possibly over a network.
 
 // Decode the proof from JSON
 var decodedProof ProofBPRP
