@@ -21,6 +21,7 @@ import (
     "crypto/sha256"
     "errors"
     "math/big"
+		"fmt"
 
     "github.com/ing-bank/zkrp/crypto/p256"
     "github.com/ing-bank/zkrp/util/bn"
@@ -79,7 +80,7 @@ func setupInnerProduct(H *p256.P256, g, h []*p256.P256, c *big.Int, N int64) (In
     if g == nil {
         params.Gg = make([]*p256.P256, params.N)
         for i := int64(0); i < params.N; i++ {
-            params.Gg[i], _ = p256.MapToGroup(SEEDH + "g" + string(i))
+            params.Gg[i], _ = p256.MapToGroup(SEEDH + "g" + fmt.Sprint(i))
         }
     } else {
         params.Gg = g
@@ -87,7 +88,7 @@ func setupInnerProduct(H *p256.P256, g, h []*p256.P256, c *big.Int, N int64) (In
     if h == nil {
         params.Hh = make([]*p256.P256, params.N)
         for i := int64(0); i < params.N; i++ {
-            params.Hh[i], _ = p256.MapToGroup(SEEDH + "h" + string(i))
+            params.Hh[i], _ = p256.MapToGroup(SEEDH + "h" + fmt.Sprint(i))
         }
     } else {
         params.Hh = h
